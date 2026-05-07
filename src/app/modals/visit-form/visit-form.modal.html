@@ -1,0 +1,78 @@
+<ion-header>
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-button (click)="close()">
+        <ion-icon name="close-outline" slot="icon-only"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+    <ion-title>{{ mode === 'edit' ? 'Besuch bearbeiten' : 'Besuch hinzufügen' }}</ion-title>
+    <ion-buttons slot="end">
+      <ion-button
+        (click)="save()"
+        [disabled]="!canSave || isSaving()"
+        [strong]="true"
+      >
+        <ion-icon name="save-outline" slot="icon-only"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content>
+  <div class="doctor-info ion-padding">
+    <h2>{{ doctor.name }}</h2>
+    <p>{{ doctor.specialty }}</p>
+  </div>
+
+  <ion-list>
+    <ion-item lines="none" class="datetime-item">
+      <div class="datetime-container">
+        <ion-label position="stacked">Datum & Uhrzeit *</ion-label>
+        <div class="datetime-display">
+          <span class="current-datetime">{{ formatDisplayDate(date()) }}</span>
+          <ion-button id="open-datetime-modal" fill="clear">
+            <ion-icon name="calendar-outline" slot="icon-only"></ion-icon>
+          </ion-button>
+        </div>
+      </div>
+    </ion-item>
+
+    <ion-item>
+      <ion-input
+        label="Dauer (Minuten) *"
+        labelPlacement="stacked"
+        type="number"
+        placeholder="z.B. 30"
+        [value]="durationMinutes()"
+        (ionInput)="onDurationChange($event)"
+        min="1"
+        max="480"
+      ></ion-input>
+    </ion-item>
+
+    <ion-item>
+      <ion-textarea
+        label="Notiz"
+        labelPlacement="stacked"
+        placeholder="Was wurde besprochen..."
+        [value]="note()"
+        (ionInput)="onNoteChange($event)"
+        rows="4"
+      ></ion-textarea>
+    </ion-item>
+  </ion-list>
+
+  <ion-modal trigger="open-datetime-modal" [keepContentsMounted]="true">
+    <ng-template>
+      <ion-datetime
+        presentation="date-time"
+        [value]="date()"
+        (ionChange)="onDateChange($event)"
+        locale="de-DE"
+        [showDefaultButtons]="true"
+        doneText="Fertig"
+        cancelText="Abbrechen"
+      ></ion-datetime>
+    </ng-template>
+  </ion-modal>
+</ion-content>

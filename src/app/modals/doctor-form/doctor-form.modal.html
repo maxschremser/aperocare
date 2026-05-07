@@ -1,0 +1,127 @@
+<ion-header>
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-button (click)="close()">
+        <ion-icon name="close-outline" slot="icon-only"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+    <ion-title>{{ mode === 'edit' ? 'Arzt bearbeiten' : 'Neuer Arzt' }}</ion-title>
+    <ion-buttons slot="end">
+      <ion-button
+        (click)="save()"
+        [disabled]="!canSave || isSaving()"
+        [strong]="true"
+      >
+        <ion-icon name="save-outline" slot="icon-only"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content>
+  <ion-list>
+    <ion-item>
+      <ion-input
+        label="Name *"
+        labelPlacement="stacked"
+        placeholder="z.B. Dr. Maria Huber"
+        [value]="name()"
+        (ionInput)="onNameChange($event)"
+      ></ion-input>
+    </ion-item>
+
+    <ion-item>
+      <ion-select
+        label="Fachrichtung *"
+        labelPlacement="stacked"
+        placeholder="Bitte wählen"
+        [value]="specialty()"
+        (ionChange)="onSpecialtyChange($event)"
+      >
+        <ion-select-option *ngFor="let spec of specialties" [value]="spec">
+          {{ spec }}
+        </ion-select-option>
+      </ion-select>
+    </ion-item>
+
+    <ion-item>
+      <ion-input
+        label="Adresse *"
+        labelPlacement="stacked"
+        placeholder="z.B. Mariahilfer Straße 88"
+        [value]="address()"
+        (ionInput)="onAddressChange($event)"
+      ></ion-input>
+    </ion-item>
+
+    <ion-item>
+      <ion-input
+        label="Ort *"
+        labelPlacement="stacked"
+        placeholder="z.B. Wien"
+        [value]="city()"
+        (ionInput)="onCityChange($event)"
+      ></ion-input>
+    </ion-item>
+
+    <ion-item *ngIf="isViennaSelected">
+      <ion-select
+        label="Wiener Bezirk"
+        labelPlacement="stacked"
+        placeholder="Optional"
+        [value]="district()"
+        (ionChange)="onDistrictChange($event)"
+      >
+        <ion-select-option value="">Kein Bezirk</ion-select-option>
+        <ion-select-option *ngFor="let dist of viennaDistricts" [value]="dist.code">
+          {{ dist.name }}
+        </ion-select-option>
+      </ion-select>
+    </ion-item>
+
+    <ion-item>
+      <ion-input
+        label="Telefon"
+        labelPlacement="stacked"
+        type="tel"
+        placeholder="z.B. +43 1 234567"
+        [value]="telephone()"
+        (ionInput)="onTelephoneChange($event)"
+      ></ion-input>
+    </ion-item>
+
+    <ion-item>
+      <ion-input
+        label="Website"
+        labelPlacement="stacked"
+        type="url"
+        placeholder="z.B. https://www.arzt.at"
+        [value]="website()"
+        (ionInput)="onWebsiteChange($event)"
+      ></ion-input>
+    </ion-item>
+
+    <ion-item>
+      <ion-textarea
+        label="Notizen"
+        labelPlacement="stacked"
+        placeholder="Zusätzliche Informationen..."
+        [value]="notes()"
+        (ionInput)="onNotesChange($event)"
+        rows="3"
+      ></ion-textarea>
+    </ion-item>
+
+    <ion-item *ngIf="mode === 'edit'" lines="none" class="delete-section">
+      <ion-button
+        expand="block"
+        color="danger"
+        fill="clear"
+        (click)="deleteDoctor()"
+      >
+        <ion-icon name="trash-outline" slot="start"></ion-icon>
+        Arzt löschen
+      </ion-button>
+    </ion-item>
+  </ion-list>
+</ion-content>

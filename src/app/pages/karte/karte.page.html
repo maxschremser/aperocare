@@ -1,0 +1,35 @@
+<ion-header>
+  <ion-toolbar>
+    <ion-title>Karte</ion-title>
+    <ion-buttons slot="end">
+      <ion-button (click)="toggleHeatmap()" [color]="showHeatmap ? 'primary' : 'medium'">
+        <ion-icon name="layers-outline" slot="icon-only"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content>
+  <div #mapContainer class="map-container"></div>
+
+  <ion-fab slot="fixed" vertical="bottom" horizontal="end">
+    <ion-fab-button (click)="centerOnAustria()">
+      <ion-icon name="locate-outline"></ion-icon>
+    </ion-fab-button>
+  </ion-fab>
+
+  <div class="legend">
+    <div class="legend-item">
+      <div class="legend-color" style="background-color: #2dd36f;"></div>
+      <span>Aktuell (≤30 Tage)</span>
+    </div>
+    <div class="legend-item">
+      <div class="legend-color" style="background-color: #ffc409;"></div>
+      <span>Bald fällig (31-90 Tage)</span>
+    </div>
+    <div class="legend-item">
+      <div class="legend-color" style="background-color: #eb445a;"></div>
+      <span>Überfällig (>90 Tage)</span>
+    </div>
+  </div>
+</ion-content>

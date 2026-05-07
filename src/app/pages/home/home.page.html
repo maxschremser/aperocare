@@ -1,0 +1,159 @@
+<ion-header>
+  <ion-toolbar>
+    <ion-title>
+      <div style="display: flex; align-items: center; justify-content: center; gap: 8px;">
+        <img src="/assets/icons/aperolCare.png" alt="aperoCare" style="height: 36px;">
+        <span style="font-size: 1.1rem; font-weight: 600;">aperoCare</span>
+      </div>
+    </ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content>
+  <!-- Quick Stats -->
+  <ion-grid class="stats-grid">
+    <ion-row>
+      <ion-col size="6">
+        <ion-card class="stat-card" (click)="navigateTo('/tabs/arztliste')">
+          <ion-card-content>
+            <ion-icon name="list-outline" color="primary"></ion-icon>
+            <div class="stat-value">{{ totalDoctors() }}</div>
+            <div class="stat-label">Ärzte</div>
+          </ion-card-content>
+        </ion-card>
+      </ion-col>
+      <ion-col size="6">
+        <ion-card class="stat-card" (click)="navigateTo('/tabs/statistik')">
+          <ion-card-content>
+            <ion-icon name="calendar-outline" color="success"></ion-icon>
+            <div class="stat-value">{{ recentVisits().length }}</div>
+            <div class="stat-label">Letzte Besuche</div>
+          </ion-card-content>
+        </ion-card>
+      </ion-col>
+    </ion-row>
+  </ion-grid>
+
+  <!-- Alerts -->
+  <div class="ion-padding" *ngIf="overdueDoctors().length > 0 || dueSoonDoctors().length > 0">
+    <ion-card class="alert-card danger" *ngIf="overdueDoctors().length > 0" (click)="navigateTo('/tabs/arztliste')">
+      <ion-card-content>
+        <div class="alert-content">
+          <ion-icon name="warning-outline" color="danger"></ion-icon>
+          <div>
+            <h3>{{ overdueDoctors().length }} Überfällige Besuche</h3>
+            <p>Diese Ärzte sollten bald besucht werden</p>
+          </div>
+        </div>
+      </ion-card-content>
+    </ion-card>
+
+    <ion-card class="alert-card warning" *ngIf="dueSoonDoctors().length > 0" (click)="navigateTo('/tabs/arztliste')">
+      <ion-card-content>
+        <div class="alert-content">
+          <ion-icon name="checkmark-circle-outline" color="warning"></ion-icon>
+          <div>
+            <h3>{{ dueSoonDoctors().length }} Bald fällig</h3>
+            <p>Besuche in den nächsten Wochen planen</p>
+          </div>
+        </div>
+      </ion-card-content>
+    </ion-card>
+  </div>
+
+  <!-- Quick Actions -->
+  <div class="ion-padding">
+    <h2>Schnellzugriff</h2>
+    <ion-grid>
+      <ion-row>
+        <ion-col size="6">
+          <ion-card class="action-card" (click)="navigateTo('/tabs/karte')">
+            <ion-card-content>
+              <ion-icon name="map-outline" color="primary"></ion-icon>
+              <div class="action-label">Karte</div>
+            </ion-card-content>
+          </ion-card>
+        </ion-col>
+        <ion-col size="6">
+          <ion-card class="action-card" (click)="navigateTo('/tabs/arztsuche')">
+            <ion-card-content>
+              <ion-icon name="search-outline" color="primary"></ion-icon>
+              <div class="action-label">Suche</div>
+            </ion-card-content>
+          </ion-card>
+        </ion-col>
+        <ion-col size="6">
+          <ion-card class="action-card" (click)="navigateTo('/tabs/arztliste')">
+            <ion-card-content>
+              <ion-icon name="list-outline" color="primary"></ion-icon>
+              <div class="action-label">Ärzte</div>
+            </ion-card-content>
+          </ion-card>
+        </ion-col>
+        <ion-col size="6">
+          <ion-card class="action-card" (click)="navigateTo('/tabs/statistik')">
+            <ion-card-content>
+              <ion-icon name="stats-chart-outline" color="primary"></ion-icon>
+              <div class="action-label">Statistik</div>
+            </ion-card-content>
+          </ion-card>
+        </ion-col>
+      </ion-row>
+    </ion-grid>
+  </div>
+
+  <!-- Today's Visits -->
+  <div class="ion-padding" *ngIf="todaysVisits().length > 0">
+    <h2>Heute</h2>
+    <ion-card>
+      <ion-card-content>
+        <div class="visit-item" *ngFor="let visit of todaysVisits()" (click)="navigateToDoctor(visit.doctorId)">
+          <ion-icon name="calendar-outline" color="primary"></ion-icon>
+          <div class="visit-info">
+            <div class="visit-doctor">{{ visit.doctorName }}</div>
+            <div class="visit-specialty">{{ visit.doctorSpecialty }}</div>
+            <div class="visit-time">{{ formatTime(visit.date) }}</div>
+            <div class="visit-note" *ngIf="visit.note">{{ visit.note }}</div>
+          </div>
+          <ion-icon name="chevron-forward-outline" color="medium"></ion-icon>
+        </div>
+      </ion-card-content>
+    </ion-card>
+  </div>
+
+  <!-- Future Visits -->
+  <div class="ion-padding" *ngIf="futureVisits().length > 0">
+    <h2>Geplante Besuche</h2>
+    <ion-card>
+      <ion-card-content>
+        <div class="visit-item" *ngFor="let visit of futureVisits()" (click)="navigateToDoctor(visit.doctorId)">
+          <ion-icon name="calendar-outline" color="success"></ion-icon>
+          <div class="visit-info">
+            <div class="visit-doctor">{{ visit.doctorName }}</div>
+            <div class="visit-specialty">{{ visit.doctorSpecialty }}</div>
+            <div class="visit-date-time">{{ formatFutureDate(visit.date) }} um {{ formatTime(visit.date) }}</div>
+            <div class="visit-note" *ngIf="visit.note">{{ visit.note }}</div>
+          </div>
+          <ion-icon name="chevron-forward-outline" color="medium"></ion-icon>
+        </div>
+      </ion-card-content>
+    </ion-card>
+  </div>
+
+  <!-- Recent Activity -->
+  <div class="ion-padding" *ngIf="recentVisits().length > 0">
+    <h2>Letzte Aktivität</h2>
+    <ion-card>
+      <ion-card-content>
+        <div class="recent-visit" *ngFor="let visit of recentVisits()" (click)="navigateToDoctor(visit.doctorId)">
+          <ion-icon name="calendar-outline" color="medium"></ion-icon>
+          <div class="visit-info">
+            <div class="visit-doctor">{{ visit.doctorName }}</div>
+            <div class="visit-date">{{ formatDate(visit.date) }}</div>
+          </div>
+          <ion-icon name="chevron-forward-outline" color="medium"></ion-icon>
+        </div>
+      </ion-card-content>
+    </ion-card>
+  </div>
+</ion-content>

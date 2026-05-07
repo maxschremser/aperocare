@@ -1,0 +1,84 @@
+<ion-header>
+  <ion-toolbar>
+    <ion-title>Mehr</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content>
+  <ion-list>
+    <ion-list-header>
+      <ion-label>Ansichten</ion-label>
+    </ion-list-header>
+
+    <ion-item button (click)="navigateTo('/tabs/statistik')">
+      <ion-icon name="stats-chart-outline" slot="start" color="primary"></ion-icon>
+      <ion-label>
+        <h2>Statistiken</h2>
+        <p>Übersicht und Analysen</p>
+      </ion-label>
+      <ion-icon name="chevron-forward-outline" slot="end" color="medium"></ion-icon>
+    </ion-item>
+
+    <ion-item button (click)="navigateTo('/tabs/arztsuche')">
+      <ion-icon name="search-outline" slot="start" color="primary"></ion-icon>
+      <ion-label>
+        <h2>Arztsuche</h2>
+        <p>Neue Ärzte finden</p>
+      </ion-label>
+      <ion-icon name="chevron-forward-outline" slot="end" color="medium"></ion-icon>
+    </ion-item>
+  </ion-list>
+
+  <ion-list>
+    <ion-list-header>
+      <ion-label>Daten</ion-label>
+    </ion-list-header>
+
+    <ion-item button (click)="exportData()">
+      <ion-icon name="download-outline" slot="start" color="success"></ion-icon>
+      <ion-label>
+        <h2>Daten exportieren</h2>
+        <p>Als JSON-Datei speichern</p>
+      </ion-label>
+    </ion-item>
+
+    <ion-item button (click)="importData()">
+      <ion-icon name="download-outline" slot="start" color="warning"></ion-icon>
+      <ion-label>
+        <h2>Daten importieren</h2>
+        <p>Aus JSON-Datei laden</p>
+      </ion-label>
+    </ion-item>
+
+    <ion-item button (click)="clearAllData()">
+      <ion-icon name="trash-outline" slot="start" color="danger"></ion-icon>
+      <ion-label>
+        <h2>Alle Daten löschen</h2>
+        <p>Cache und gespeicherte Ärzte entfernen</p>
+      </ion-label>
+    </ion-item>
+  </ion-list>
+
+  <ion-list>
+    <ion-list-header>
+      <ion-label>Über</ion-label>
+    </ion-list-header>
+
+    <ion-item>
+      <ion-icon name="information-circle-outline" slot="start" color="medium"></ion-icon>
+      <ion-label>
+        <h2>aperoCare</h2>
+        <p>Version {{ appVersion }}</p>
+      </ion-label>
+    </ion-item>
+
+    <ion-item lines="none">
+      <ion-label class="ion-text-wrap">
+        <p class="about-text">
+          Arzt-Besuchsmanager für medizinische Außendienstmitarbeiter in Österreich.
+          Entwickelt mit Ionic Framework und Angular.
+        </p>
+      </ion-label>
+    </ion-item>
+  </ion-list>
+</ion-content>

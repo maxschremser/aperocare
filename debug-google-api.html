@@ -1,0 +1,449 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Google API Debug Tool</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif;
+            max-width: 900px;
+            margin: 20px auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+        h1 { color: #333; margin-top: 0; }
+        h2 { color: #666; font-size: 18px; border-bottom: 2px solid #eee; padding-bottom: 10px; }
+        .test {
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 6px;
+            border-left: 4px solid #ccc;
+        }
+        .test.pending {
+            background: #fff3cd;
+            border-left-color: #ffc107;
+        }
+        .test.success {
+            background: #d4edda;
+            border-left-color: #28a745;
+        }
+        .test.error {
+            background: #f8d7da;
+            border-left-color: #dc3545;
+        }
+        .test h3 {
+            margin: 0 0 10px 0;
+            font-size: 16px;
+        }
+        .test p {
+            margin: 5px 0;
+            font-size: 14px;
+        }
+        .code {
+            background: #f8f9fa;
+            padding: 10px;
+            border-radius: 4px;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            overflow-x: auto;
+            margin: 10px 0;
+        }
+        .icon {
+            font-size: 20px;
+            margin-right: 8px;
+        }
+        #map {
+            height: 300px;
+            width: 100%;
+            margin: 15px 0;
+            border: 2px solid #ddd;
+            border-radius: 4px;
+        }
+        button {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            margin: 5px;
+        }
+        button:hover {
+            background: #0056b3;
+        }
+        .url {
+            word-break: break-all;
+            color: #007bff;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔍 Google Maps API Debugger</h1>
+        <p>Diese Seite hilft Ihnen, Probleme mit Ihrem Google API Key zu identifizieren.</p>
+        <p><strong>API Key:</strong> <code>AIzaSyB9sHvox4UZJFvSw4EiD0olspvRwHPD8GQ</code></p>
+        <p><strong>Aktuelle URL:</strong> <span class="url" id="currentUrl"></span></p>
+    </div>
+
+    <div class="container">
+        <h2>Schritt 1: API Key Format</h2>
+        <div id="test1" class="test pending">
+            <h3><span class="icon">⏳</span>Prüfe API Key Format...</h3>
+        </div>
+    </div>
+
+    <div class="container">
+        <h2>Schritt 2: Script Laden</h2>
+        <div id="test2" class="test pending">
+            <h3><span class="icon">⏳</span>Lade Google Maps Script...</h3>
+        </div>
+    </div>
+
+    <div class="container">
+        <h2>Schritt 3: Maps JavaScript API</h2>
+        <div id="test3" class="test pending">
+            <h3><span class="icon">⏳</span>Warte auf Script...</h3>
+        </div>
+        <div id="map"></div>
+    </div>
+
+    <div class="container">
+        <h2>Schritt 4: Places API</h2>
+        <div id="test4" class="test pending">
+            <h3><span class="icon">⏳</span>Warte auf Maps API...</h3>
+        </div>
+    </div>
+
+    <div class="container">
+        <h2>Console Logs</h2>
+        <div id="console" class="code"></div>
+    </div>
+
+    <div class="container">
+        <h2>Lösungen</h2>
+        <div id="solutions"></div>
+    </div>
+
+    <script>
+        const API_KEY = 'AIzaSyB9sHvox4UZJFvSw4EiD0olspvRwHPD8GQ';
+        const logs = [];
+        const errors = [];
+
+        // Show current URL
+        document.getElementById('currentUrl').textContent = window.location.href;
+
+        // Intercept console
+        const originalLog = console.log;
+        const originalError = console.error;
+        const consoleDiv = document.getElementById('console');
+
+        function addLog(type, message) {
+            const timestamp = new Date().toLocaleTimeString();
+            const logEntry = `[${timestamp}] ${type}: ${message}`;
+            logs.push(logEntry);
+            consoleDiv.innerHTML = logs.map(l => `<div>${l}</div>`).join('');
+            consoleDiv.scrollTop = consoleDiv.scrollHeight;
+        }
+
+        console.log = function(...args) {
+            originalLog.apply(console, args);
+            addLog('LOG', args.join(' '));
+        };
+
+        console.error = function(...args) {
+            originalError.apply(console, args);
+            addLog('ERROR', args.join(' '));
+            errors.push(args.join(' '));
+        };
+
+        // Test 1: Check API Key format
+        function test1() {
+            const div = document.getElementById('test1');
+
+            if (!API_KEY || API_KEY === 'YOUR_GOOGLE_MAPS_API_KEY') {
+                div.className = 'test error';
+                div.innerHTML = `
+                    <h3><span class="icon">❌</span>API Key nicht konfiguriert!</h3>
+                    <p>Der API Key ist noch nicht eingetragen.</p>
+                `;
+                errors.push('API Key not configured');
+                return false;
+            }
+
+            if (!API_KEY.startsWith('AIza')) {
+                div.className = 'test error';
+                div.innerHTML = `
+                    <h3><span class="icon">❌</span>API Key Format ungültig!</h3>
+                    <p>Ein Google API Key sollte mit "AIza" beginnen.</p>
+                    <p>Ihr Key: ${API_KEY.substring(0, 10)}...</p>
+                `;
+                errors.push('Invalid API Key format');
+                return false;
+            }
+
+            div.className = 'test success';
+            div.innerHTML = `
+                <h3><span class="icon">✅</span>API Key Format OK!</h3>
+                <p>Key beginnt korrekt mit "AIza"</p>
+            `;
+            return true;
+        }
+
+        // Test 2: Load Google Maps Script
+        function test2() {
+            return new Promise((resolve, reject) => {
+                const div = document.getElementById('test2');
+
+                const script = document.createElement('script');
+                const scriptUrl = `https://maps.googleapis.com/maps/api/js?key=${API_KEY}&libraries=places,visualization&callback=initMap`;
+
+                console.log('Loading script:', scriptUrl);
+
+                script.src = scriptUrl;
+                script.async = true;
+                script.defer = true;
+
+                script.onload = () => {
+                    div.className = 'test success';
+                    div.innerHTML = `
+                        <h3><span class="icon">✅</span>Script erfolgreich geladen!</h3>
+                    `;
+                    resolve();
+                };
+
+                script.onerror = (error) => {
+                    div.className = 'test error';
+                    div.innerHTML = `
+                        <h3><span class="icon">❌</span>Script konnte nicht geladen werden!</h3>
+                        <p>Mögliche Ursachen:</p>
+                        <ul>
+                            <li>API Key ist ungültig</li>
+                            <li>Keine Internetverbindung</li>
+                            <li>Google API Server nicht erreichbar</li>
+                        </ul>
+                    `;
+                    errors.push('Script load failed');
+                    reject(error);
+                };
+
+                document.head.appendChild(script);
+            });
+        }
+
+        // Test 3: Initialize Map
+        window.initMap = function() {
+            const div = document.getElementById('test3');
+
+            try {
+                console.log('Initializing map...');
+
+                const map = new google.maps.Map(document.getElementById('map'), {
+                    center: { lat: 48.2082, lng: 16.3738 },
+                    zoom: 12
+                });
+
+                new google.maps.Marker({
+                    position: { lat: 48.2082, lng: 16.3738 },
+                    map: map,
+                    title: 'Wien'
+                });
+
+                div.className = 'test success';
+                div.innerHTML = `
+                    <h3><span class="icon">✅</span>Maps JavaScript API funktioniert!</h3>
+                    <p>Die Karte wurde erfolgreich geladen.</p>
+                `;
+
+                // Continue to test 4
+                test4(map);
+
+            } catch (error) {
+                console.error('Map initialization error:', error);
+
+                div.className = 'test error';
+                div.innerHTML = `
+                    <h3><span class="icon">❌</span>Fehler beim Initialisieren der Karte!</h3>
+                    <p><strong>Error:</strong> ${error.message}</p>
+                    <p>Häufige Fehler:</p>
+                    <ul>
+                        <li><strong>RefererNotAllowedMapError:</strong> HTTP Referrer nicht erlaubt</li>
+                        <li><strong>ApiNotActivatedMapError:</strong> Maps JavaScript API nicht aktiviert</li>
+                        <li><strong>RequestDeniedMapError:</strong> API Key ungültig oder eingeschränkt</li>
+                    </ul>
+                `;
+
+                errors.push('Map initialization failed: ' + error.message);
+                showSolutions();
+            }
+        };
+
+        // Test 4: Test Places API
+        function test4(map) {
+            const div = document.getElementById('test4');
+
+            try {
+                const service = new google.maps.places.PlacesService(map);
+
+                const request = {
+                    query: 'Arzt Wien',
+                    fields: ['name', 'geometry']
+                };
+
+                console.log('Testing Places API...');
+
+                service.textSearch(request, function(results, status) {
+                    console.log('Places API status:', status);
+
+                    if (status === google.maps.places.PlacesServiceStatus.OK) {
+                        div.className = 'test success';
+                        div.innerHTML = `
+                            <h3><span class="icon">✅</span>Places API funktioniert!</h3>
+                            <p>${results.length} Ärzte in Wien gefunden.</p>
+                        `;
+                    } else if (status === google.maps.places.PlacesServiceStatus.REQUEST_DENIED) {
+                        div.className = 'test error';
+                        div.innerHTML = `
+                            <h3><span class="icon">❌</span>Places API: Zugriff verweigert!</h3>
+                            <p>Die Places API ist nicht aktiviert oder der API Key ist nicht freigegeben.</p>
+                        `;
+                        errors.push('Places API REQUEST_DENIED');
+                    } else {
+                        div.className = 'test error';
+                        div.innerHTML = `
+                            <h3><span class="icon">❌</span>Places API Fehler!</h3>
+                            <p><strong>Status:</strong> ${status}</p>
+                        `;
+                        errors.push('Places API error: ' + status);
+                    }
+
+                    showSolutions();
+                });
+
+            } catch (error) {
+                console.error('Places API error:', error);
+                div.className = 'test error';
+                div.innerHTML = `
+                    <h3><span class="icon">❌</span>Places API Fehler!</h3>
+                    <p><strong>Error:</strong> ${error.message}</p>
+                `;
+                errors.push('Places API exception: ' + error.message);
+                showSolutions();
+            }
+        }
+
+        // Show solutions based on errors
+        function showSolutions() {
+            const solutionsDiv = document.getElementById('solutions');
+
+            if (errors.length === 0) {
+                solutionsDiv.innerHTML = `
+                    <div class="test success">
+                        <h3><span class="icon">🎉</span>Alles funktioniert!</h3>
+                        <p>Ihr Google API Key ist korrekt konfiguriert.</p>
+                    </div>
+                `;
+                return;
+            }
+
+            let solutions = '<div class="test error"><h3>🔧 Lösungsvorschläge:</h3>';
+
+            if (errors.some(e => e.includes('RefererNotAllowedMapError') || e.includes('Referrer'))) {
+                solutions += `
+                    <div style="margin: 15px 0; padding: 15px; background: #fff; border-left: 4px solid #dc3545;">
+                        <h4 style="margin-top: 0;">HTTP Referrer Problem</h4>
+                        <p><strong>Lösung:</strong></p>
+                        <ol>
+                            <li>Gehen Sie zu <a href="https://console.cloud.google.com/apis/credentials" target="_blank">Google Cloud Console → Credentials</a></li>
+                            <li>Klicken Sie auf Ihren API Key</li>
+                            <li>Unter "Application restrictions" wählen Sie "HTTP referrers"</li>
+                            <li>Fügen Sie hinzu:<br>
+                                <code style="display:block;margin:10px 0;padding:10px;background:#f5f5f5;">
+                                http://localhost:*/*<br>
+                                http://127.0.0.1:*/*<br>
+                                http://192.168.*:*/*
+                                </code>
+                            </li>
+                            <li>Speichern und 5-10 Minuten warten</li>
+                        </ol>
+                    </div>
+                `;
+            }
+
+            if (errors.some(e => e.includes('ApiNotActivatedMapError') || e.includes('not activated'))) {
+                solutions += `
+                    <div style="margin: 15px 0; padding: 15px; background: #fff; border-left: 4px solid #ffc107;">
+                        <h4 style="margin-top: 0;">Maps JavaScript API nicht aktiviert</h4>
+                        <p><strong>Lösung:</strong></p>
+                        <ol>
+                            <li>Gehen Sie zu <a href="https://console.cloud.google.com/apis/library" target="_blank">Google Cloud Console → API Library</a></li>
+                            <li>Suchen Sie nach "Maps JavaScript API"</li>
+                            <li>Klicken Sie auf "ENABLE"</li>
+                            <li>Warten Sie 2-3 Minuten</li>
+                        </ol>
+                    </div>
+                `;
+            }
+
+            if (errors.some(e => e.includes('Places API') && e.includes('REQUEST_DENIED'))) {
+                solutions += `
+                    <div style="margin: 15px 0; padding: 15px; background: #fff; border-left: 4px solid #ffc107;">
+                        <h4 style="margin-top: 0;">Places API nicht aktiviert</h4>
+                        <p><strong>Lösung:</strong></p>
+                        <ol>
+                            <li>Gehen Sie zu <a href="https://console.cloud.google.com/apis/library" target="_blank">Google Cloud Console → API Library</a></li>
+                            <li>Suchen Sie nach "Places API"</li>
+                            <li>Klicken Sie auf "ENABLE"</li>
+                            <li>Gehen Sie zu Credentials → Ihr API Key</li>
+                            <li>Unter "API restrictions" wählen Sie "Restrict key"</li>
+                            <li>Wählen Sie beide: "Maps JavaScript API" und "Places API"</li>
+                        </ol>
+                    </div>
+                `;
+            }
+
+            solutions += `
+                <div style="margin: 15px 0; padding: 15px; background: #d1ecf1; border-left: 4px solid #0c5460;">
+                    <h4 style="margin-top: 0;">📞 Weitere Hilfe</h4>
+                    <p>Falls die Probleme weiterhin bestehen:</p>
+                    <ul>
+                        <li>Überprüfen Sie die Browser-Konsole (F12) für detaillierte Fehlermeldungen</li>
+                        <li>Warten Sie 10-15 Minuten nach Änderungen in der Google Cloud Console</li>
+                        <li>Erstellen Sie einen neuen API Key und versuchen Sie es erneut</li>
+                    </ul>
+                </div>
+            `;
+
+            solutions += '</div>';
+            solutionsDiv.innerHTML = solutions;
+        }
+
+        // Run tests
+        async function runTests() {
+            console.log('Starting tests...');
+
+            if (!test1()) {
+                showSolutions();
+                return;
+            }
+
+            try {
+                await test2();
+                // initMap wird automatisch aufgerufen
+            } catch (error) {
+                console.error('Test failed:', error);
+                showSolutions();
+            }
+        }
+
+        runTests();
+    </script>
+</body>
+</html>

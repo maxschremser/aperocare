@@ -1,0 +1,134 @@
+<ion-header>
+  <ion-toolbar>
+    <ion-title>Arztsuche</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content>
+  <div class="search-container ion-padding">
+    <p class="description">
+      Finden Sie Ärzte über Google Places und fügen Sie sie direkt zu Ihrer Liste hinzu.
+    </p>
+
+    <ion-segment [value]="searchMode()" (ionChange)="onSearchModeChange($event)">
+      <ion-segment-button value="city">
+        <ion-label>Nach Stadt</ion-label>
+      </ion-segment-button>
+      <ion-segment-button value="text">
+        <ion-label>Freitext</ion-label>
+      </ion-segment-button>
+    </ion-segment>
+
+    <div *ngIf="searchMode() === 'city'" class="search-mode">
+      <ion-searchbar
+        placeholder="Stadt eingeben (z.B. Wien, Graz...)"
+        [debounce]="300"
+        (ionInput)="onCityChange($event)"
+      ></ion-searchbar>
+    </div>
+
+    <div *ngIf="searchMode() === 'text'" class="search-mode">
+      <ion-searchbar
+        placeholder="Name oder Suchbegriff (z.B. Dr. Müller Graz...)"
+        [debounce]="300"
+        (ionInput)="onQueryChange($event)"
+      ></ion-searchbar>
+    </div>
+
+    <ion-item>
+      <ion-select
+        label="Fachrichtung (Filter)"
+        placeholder="Alle"
+        [value]="selectedSpecialty()"
+        (ionChange)="onSpecialtyChange($event)"
+      >
+        <ion-select-option value="">Alle Fachrichtungen</ion-select-option>
+        <ion-select-option *ngFor="let specialty of specialties" [value]="specialty">
+          {{ specialty }}
+        </ion-select-option>
+      </ion-select>
+    </ion-item>
+
+    <ion-button
+      expand="block"
+      (click)="onSearch()"
+      [disabled]="isLoading() || (searchMode() === 'city' && !searchCity()) || (searchMode() === 'text' && !searchQuery())"
+    >
+      <ion-icon name="search-outline" slot="start"></ion-icon>
+      {{ isLoading() ? 'Suche läuft...' : 'Suchen' }}
+    </ion-button>
+  </div>
+
+  <div *ngIf="isLoading()" class="loading-container">
+    <ion-spinner></ion-spinner>
+    <p>Durchsuche Google Places...</p>
+  </div>
+
+  <div *ngIf="!isLoading() && hasSearched()">
+    <ion-list *ngIf="searchResults().length > 0; else noResults">
+      <ion-item *ngFor="let doctor of searchResults()">
+        <ion-label>
+          <h2><strong>{{ doctor.name }}</strong></h2>
+          <p *ngIf="doctor.specialty">
+            <ion-chip color="primary" style="margin-left: 0; height: 24px; font-size: 0.75rem;">
+              {{ doctor.specialty }}
+            </ion-chip>
+          </p>
+          <p>
+            <ion-icon name="location-outline"></ion-icon>
+            {{ doctor.address }}, {{ doctor.city }}
+          </p>
+          <p *ngIf="doctor.phone">
+            <ion-icon name="call-outline"></ion-icon>
+            {{ doctor.phone }}
+          </p>
+          <p *ngIf="doctor.website">
+            <ion-icon name="globe-outline"></ion-icon>
+            Website verfügbar
+          </p>
+        </ion-label>
+        <ion-button
+          slot="end"
+          fill="clear"
+          [disabled]="isDoctorAdded(doctor)"
+          (click)="addDoctor(doctor)"
+        >
+          <ion-icon
+            name="add-circle-outline"
+            slot="icon-only"
+            [color]="isDoctorAdded(doctor) ? 'medium' : 'primary'"
+          ></ion-icon>
+        </ion-button>
+        <ion-badge
+          *ngIf="isDoctorAdded(doctor)"
+          slot="end"
+          color="success"
+          style="margin-right: 8px;"
+        >
+          Hinzugefügt
+        </ion-badge>
+      </ion-item>
+    </ion-list>
+
+    <ng-template #noResults>
+      <div class="no-results ion-padding ion-text-center">
+        <ion-icon name="search-outline" size="large" color="medium"></ion-icon>
+        <h2>Keine Ärzte gefunden</h2>
+        <p>Versuchen Sie es mit einer anderen Stadt.</p>
+      </div>
+    </ng-template>
+  </div>
+
+  <div *ngIf="!hasSearched()" class="info-container ion-padding ion-text-center">
+    <ion-icon name="search-outline" size="large" color="medium"></ion-icon>
+    <h2>Ärzte online finden</h2>
+    <p>
+      Nutzen Sie Google Places, um aktuelle Arztpraxen zu finden
+      und sie mit einem Klick zu Ihrer Liste hinzuzufügen.
+    </p>
+    <p style="font-size: 0.85rem; color: var(--ion-color-medium);">
+      <strong>Nach Stadt:</strong> Findet alle Ärzte in der Nähe einer Stadt<br>
+      <strong>Freitext:</strong> Suchen Sie nach Namen oder Orten (z.B. "Dr. Müller Linz")
+    </p>
+  </div>
+</ion-content>

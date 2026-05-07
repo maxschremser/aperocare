@@ -1,0 +1,147 @@
+<ion-header>
+  <ion-toolbar>
+    <ion-title>Statistik</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content>
+  <div class="ion-padding">
+    <!-- Overview Cards -->
+    <ion-grid>
+      <ion-row>
+        <ion-col size="6">
+          <ion-card class="stat-card">
+            <ion-card-content>
+              <div class="stat-icon">
+                <ion-icon name="people-outline" color="primary"></ion-icon>
+              </div>
+              <div class="stat-value">{{ totalDoctors() }}</div>
+              <div class="stat-label">Ärzte gesamt</div>
+            </ion-card-content>
+          </ion-card>
+        </ion-col>
+        <ion-col size="6">
+          <ion-card class="stat-card">
+            <ion-card-content>
+              <div class="stat-icon">
+                <ion-icon name="calendar-outline" color="success"></ion-icon>
+              </div>
+              <div class="stat-value">{{ totalVisits() }}</div>
+              <div class="stat-label">Besuche gesamt</div>
+            </ion-card-content>
+          </ion-card>
+        </ion-col>
+      </ion-row>
+    </ion-grid>
+
+    <!-- Visit Status Overview -->
+    <ion-card>
+      <ion-card-header>
+        <ion-card-title>Besuchsstatus</ion-card-title>
+      </ion-card-header>
+      <ion-card-content>
+        <ion-list lines="none">
+          <ion-item>
+            <ion-icon name="checkmark-circle-outline" color="success" slot="start"></ion-icon>
+            <ion-label>
+              <h3>Aktuell</h3>
+              <p>Besucht in den letzten 30 Tagen</p>
+            </ion-label>
+            <ion-badge color="success" slot="end">
+              {{ currentDoctors() }} ({{ getPercentage(currentDoctors()) }}%)
+            </ion-badge>
+          </ion-item>
+
+          <ion-item>
+            <ion-icon name="warning-outline" color="warning" slot="start"></ion-icon>
+            <ion-label>
+              <h3>Bald fällig</h3>
+              <p>31-90 Tage seit letztem Besuch</p>
+            </ion-label>
+            <ion-badge color="warning" slot="end">
+              {{ dueSoonDoctors() }} ({{ getPercentage(dueSoonDoctors()) }}%)
+            </ion-badge>
+          </ion-item>
+
+          <ion-item>
+            <ion-icon name="alert-circle-outline" color="danger" slot="start"></ion-icon>
+            <ion-label>
+              <h3>Überfällig</h3>
+              <p>Über 90 Tage oder nie besucht</p>
+            </ion-label>
+            <ion-badge color="danger" slot="end">
+              {{ overdueDoctors() }} ({{ getPercentage(overdueDoctors()) }}%)
+            </ion-badge>
+          </ion-item>
+        </ion-list>
+
+        <div class="average-stat ion-margin-top">
+          <ion-icon name="time-outline" color="medium"></ion-icon>
+          <span>Ø {{ averageVisitsPerDoctor() }} Besuche pro Arzt</span>
+        </div>
+      </ion-card-content>
+    </ion-card>
+
+    <!-- Doctors by City -->
+    <ion-card>
+      <ion-card-header>
+        <ion-card-title>
+          <ion-icon name="map-outline"></ion-icon>
+          Top Städte
+        </ion-card-title>
+      </ion-card-header>
+      <ion-card-content>
+        <ion-list *ngIf="doctorsByCity().length > 0; else noData">
+          <ion-item *ngFor="let item of doctorsByCity()">
+            <ion-label>{{ item.city }}</ion-label>
+            <ion-badge slot="end" color="primary">{{ item.count }}</ion-badge>
+          </ion-item>
+        </ion-list>
+        <ng-template #noData>
+          <p class="no-data">Keine Daten verfügbar</p>
+        </ng-template>
+      </ion-card-content>
+    </ion-card>
+
+    <!-- Doctors by Specialty -->
+    <ion-card>
+      <ion-card-header>
+        <ion-card-title>Ärzte nach Fachrichtung</ion-card-title>
+      </ion-card-header>
+      <ion-card-content>
+        <ion-list *ngIf="doctorsBySpecialty().length > 0; else noData">
+          <ion-item *ngFor="let item of doctorsBySpecialty()">
+            <ion-label>{{ item.specialty }}</ion-label>
+            <ion-badge slot="end" color="secondary">{{ item.count }}</ion-badge>
+          </ion-item>
+        </ion-list>
+      </ion-card-content>
+    </ion-card>
+
+    <!-- Recent Visits -->
+    <ion-card>
+      <ion-card-header>
+        <ion-card-title>Letzte Besuche</ion-card-title>
+      </ion-card-header>
+      <ion-card-content>
+        <ion-list *ngIf="recentVisits().length > 0; else noVisits">
+          <ion-item *ngFor="let visit of recentVisits()">
+            <ion-label>
+              <h3>{{ visit.doctorName }}</h3>
+              <p>{{ visit.note }}</p>
+              <p class="visit-details">
+                <ion-icon name="calendar-outline"></ion-icon>
+                {{ formatDate(visit.date) }} •
+                <ion-icon name="time-outline"></ion-icon>
+                {{ visit.durationMinutes }} Min.
+              </p>
+            </ion-label>
+          </ion-item>
+        </ion-list>
+        <ng-template #noVisits>
+          <p class="no-data">Noch keine Besuche erfasst</p>
+        </ng-template>
+      </ion-card-content>
+    </ion-card>
+  </div>
+</ion-content>

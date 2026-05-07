@@ -1,0 +1,66 @@
+.search-container {
+  background: var(--ion-color-light);
+  padding-bottom: 1rem;
+}
+
+.description {
+  color: var(--ion-color-medium);
+  font-size: 0.9rem;
+  margin-bottom: 1rem;
+}
+
+.loading-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 3rem 1rem;
+  gap: 1rem;
+}
+
+.loading-container p {
+  color: var(--ion-color-medium);
+  font-size: 0.9rem;
+}
+
+.no-results,
+.info-container {
+  margin-top: 3rem;
+}
+
+.no-results ion-icon,
+.info-container ion-icon {
+  font-size: 4rem;
+  margin-bottom: 1rem;
+}
+
+.no-results h2,
+.info-container h2 {
+  color: var(--ion-color-medium);
+  margin-bottom: 0.5rem;
+  font-size: 1.2rem;
+}
+
+.no-results p,
+.info-container p {
+  color: var(--ion-color-medium);
+  font-size: 0.9rem;
+  max-width: 400px;
+  margin: 0 auto;
+}
+
+ion-item p {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin: 0.25rem 0;
+}
+
+ion-item p ion-icon {
+  font-size: 1rem;
+  vertical-align: middle;
+}
+
+ion-list {
+  margin-top: 0;
+}

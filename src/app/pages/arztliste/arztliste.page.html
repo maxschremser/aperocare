@@ -1,0 +1,120 @@
+<ion-header>
+  <ion-toolbar>
+    <ion-title>Ärzte</ion-title>
+  </ion-toolbar>
+  <ion-toolbar>
+    <ion-searchbar
+      placeholder="Name, Ort, Fachrichtung..."
+      [debounce]="300"
+      (ionInput)="onSearchChange($event)"
+    ></ion-searchbar>
+  </ion-toolbar>
+  <ion-toolbar>
+    <ion-segment [value]="selectedFilter()" (ionChange)="onFilterChange($event)">
+      <ion-segment-button value="all">
+        <ion-label>Alle ({{ allDoctors().length }})</ion-label>
+      </ion-segment-button>
+      <ion-segment-button value="current">
+        <ion-label>Aktuell ({{ currentCount() }})</ion-label>
+      </ion-segment-button>
+      <ion-segment-button value="due-soon">
+        <ion-label>Bald ({{ dueSoonCount() }})</ion-label>
+      </ion-segment-button>
+      <ion-segment-button value="overdue">
+        <ion-label>Fällig ({{ overdueCount() }})</ion-label>
+      </ion-segment-button>
+    </ion-segment>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content>
+  <ion-refresher slot="fixed" (ionRefresh)="handleRefresh($event)">
+    <ion-refresher-content></ion-refresher-content>
+  </ion-refresher>
+
+  <ion-list *ngIf="filteredDoctors().length > 0; else noResults">
+    <ion-item-sliding *ngFor="let doctor of filteredDoctors()" #slidingItem>
+      <ion-item
+        button
+        detail
+        (click)="onDoctorClick(doctor)"
+      >
+        <ion-label>
+          <h2><strong>{{ doctor.name }}</strong></h2>
+          <p>
+            <ion-icon name="location-outline"></ion-icon>
+            {{ doctor.city }}
+          </p>
+          <p>
+            <ion-chip color="primary" style="margin-left: 0;">
+              {{ doctor.specialty }}
+            </ion-chip>
+          </p>
+        </ion-label>
+        <div slot="end" class="status-container">
+          <div class="action-buttons">
+            <ion-button
+              *ngIf="doctor.telephone"
+              fill="clear"
+              size="small"
+              (click)="callDoctor($event, doctor)"
+            >
+              <ion-icon slot="icon-only" name="call-outline" color="primary"></ion-icon>
+            </ion-button>
+            <ion-button
+              *ngIf="doctor.website"
+              fill="clear"
+              size="small"
+              (click)="openWebsite($event, doctor)"
+            >
+              <ion-icon slot="icon-only" name="globe-outline" color="primary"></ion-icon>
+            </ion-button>
+          </div>
+          <ion-badge [color]="getBadgeColor(doctor)">
+            {{ getStatusText(doctor) }}
+          </ion-badge>
+          <ion-note *ngIf="doctor.visits.length > 0">
+            {{ doctor.visits.length }} Besuch{{ doctor.visits.length !== 1 ? 'e' : '' }}
+          </ion-note>
+        </div>
+      </ion-item>
+
+      <ion-item-options side="start">
+        <ion-item-option color="success" (click)="addVisitToDoctor(doctor, slidingItem)">
+          <ion-icon name="calendar-outline" slot="icon-only"></ion-icon>
+        </ion-item-option>
+      </ion-item-options>
+
+      <ion-item-options side="end">
+        <ion-item-option color="primary" (click)="editDoctor(doctor, slidingItem)">
+          <ion-icon name="create-outline" slot="icon-only"></ion-icon>
+        </ion-item-option>
+        <ion-item-option color="danger" (click)="deleteDoctor(doctor, slidingItem)">
+          <ion-icon name="trash-outline" slot="icon-only"></ion-icon>
+        </ion-item-option>
+      </ion-item-options>
+    </ion-item-sliding>
+  </ion-list>
+
+  <ng-template #noResults>
+    <div class="empty-state ion-padding ion-text-center">
+      <ion-icon name="person-add-outline" size="large" color="medium"></ion-icon>
+      <h2>Keine Ärzte gefunden</h2>
+      <p *ngIf="searchTerm()">
+        Versuchen Sie eine andere Suche oder fügen Sie einen neuen Arzt hinzu.
+      </p>
+      <p *ngIf="!searchTerm() && selectedFilter() !== 'all'">
+        Keine Ärzte mit diesem Status gefunden.
+      </p>
+      <p *ngIf="!searchTerm() && selectedFilter() === 'all' && allDoctors().length === 0">
+        Fügen Sie Ihren ersten Arzt hinzu, um loszulegen.
+      </p>
+    </div>
+  </ng-template>
+
+  <ion-fab slot="fixed" vertical="bottom" horizontal="end">
+    <ion-fab-button (click)="onAddDoctor()">
+      <ion-icon name="add-outline"></ion-icon>
+    </ion-fab-button>
+  </ion-fab>
+</ion-content>

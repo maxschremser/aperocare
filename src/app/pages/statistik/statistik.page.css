@@ -1,0 +1,87 @@
+.stat-card {
+  margin: 0;
+  text-align: center;
+}
+
+.stat-card ion-card-content {
+  padding: 1rem 0.5rem;
+}
+
+.stat-icon {
+  font-size: 2rem;
+  margin-bottom: 0.5rem;
+}
+
+.stat-value {
+  font-size: 2rem;
+  font-weight: bold;
+  color: var(--ion-color-primary);
+  margin-bottom: 0.25rem;
+}
+
+.stat-label {
+  font-size: 0.75rem;
+  color: var(--ion-color-medium);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.average-stat {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.75rem;
+  background: var(--ion-color-light);
+  border-radius: 8px;
+  color: var(--ion-color-medium);
+  font-weight: 500;
+}
+
+.average-stat ion-icon {
+  font-size: 1.25rem;
+}
+
+ion-card-title {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 1.1rem;
+}
+
+ion-card-title ion-icon {
+  font-size: 1.5rem;
+}
+
+.no-data {
+  text-align: center;
+  color: var(--ion-color-medium);
+  padding: 1rem 0;
+  font-style: italic;
+}
+
+.visit-details {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+  color: var(--ion-color-medium);
+  font-size: 0.85rem;
+}
+
+.visit-details ion-icon {
+  font-size: 1rem;
+  vertical-align: middle;
+}
+
+ion-list ion-item {
+  --padding-start: 0;
+}
+
+ion-grid {
+  padding: 0;
+}
+
+ion-col {
+  padding: 0.25rem;
+}

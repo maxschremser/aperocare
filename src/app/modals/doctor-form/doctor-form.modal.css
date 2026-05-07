@@ -1,0 +1,111 @@
+.geocoding-section {
+  padding: 1rem;
+  background: var(--ion-color-light);
+  margin-top: 1rem;
+}
+
+.geocode-button {
+  margin-top: 0.5rem;
+}
+
+.warning {
+  color: var(--ion-color-warning);
+  font-weight: 500;
+}
+
+.success {
+  color: var(--ion-color-success);
+  font-weight: 500;
+  font-size: 0.85rem;
+}
+
+.delete-section {
+  margin-top: 2rem;
+  padding: 1rem;
+  text-align: center;
+}
+
+.delete-section ion-button {
+  width: 100%;
+}
+
+ion-item {
+  --padding-start: 16px;
+}
+
+ion-list {
+  padding-top: 0;
+}
+
+.search-section {
+  padding: 16px;
+  background: #f8fafc;
+}
+
+.search-section ion-card {
+  margin: 0;
+  box-shadow: 0 2px 8px rgba(70, 130, 180, 0.08);
+}
+
+.search-section ion-card-title {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #4682b4;
+}
+
+.search-results {
+  margin-top: 16px;
+  max-height: 300px;
+  overflow-y: auto;
+}
+
+.search-results ion-item {
+  --background: #ffffff;
+  margin-bottom: 8px;
+  border-radius: 8px;
+  border: 1px solid #e8eef5;
+}
+
+.search-results ion-item h3 {
+  font-weight: 600;
+  color: #1e293b;
+  margin-bottom: 4px;
+}
+
+.search-results ion-item p {
+  font-size: 0.85rem;
+  color: #64748b;
+  margin: 2px 0;
+}
+
+.no-results {
+  text-align: center;
+  color: #64748b;
+  font-style: italic;
+  margin-top: 16px;
+}
+
+.divider {
+  text-align: center;
+  margin: 24px 0;
+  position: relative;
+}
+
+.divider::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 50%;
+  height: 1px;
+  background: #e2e8f0;
+}
+
+.divider span {
+  background: #f8fafc;
+  padding: 0 16px;
+  position: relative;
+  color: #64748b;
+  font-size: 0.9rem;
+  font-weight: 600;
+}

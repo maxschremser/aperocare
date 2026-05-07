@@ -1,0 +1,216 @@
+import { Component, OnInit, OnDestroy, ViewChild, ElementRef, computed } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { Router } from '@angular/router';
+import {
+  IonHeader,
+  IonToolbar,
+  IonTitle,
+  IonContent,
+  IonFab,
+  IonFabButton,
+  IonIcon,
+  IonButton,
+  IonButtons
+} from '@ionic/angular/standalone';
+import { addIcons } from 'ionicons';
+import { locateOutline, layersOutline } from 'ionicons/icons';
+import * as L from 'leaflet';
+import 'leaflet.heat';
+import { DoctorService } from '../../services/doctor.service';
+import { Doctor, getVisitStatus, getLastVisit } from '../../models/doctor.model';
+
+@Component({
+  selector: 'app-karte',
+  templateUrl: 'karte.page.html',
+  styleUrls: ['karte.page.css'],
+  imports: [
+    CommonModule,
+    IonHeader,
+    IonToolbar,
+    IonTitle,
+    IonContent,
+    IonFab,
+    IonFabButton,
+    IonIcon,
+    IonButton,
+    IonButtons
+  ]
+})
+export class KartePage implements OnInit, OnDestroy {
+  @ViewChild('mapContainer', { static: false }) mapContainer!: ElementRef;
+
+  private map: L.Map | null = null;
+  private markers: L.Marker[] = [];
+  private heatmapLayer: any | null = null;
+  showHeatmap = false;
+
+  protected doctorService!: DoctorService;
+  allDoctors = computed(() => this.doctorService.allDoctors());
+
+  constructor(
+    doctorService: DoctorService,
+    private router: Router
+  ) {
+    this.doctorService = doctorService;
+    addIcons({ locateOutline, layersOutline });
+  }
+
+  ngOnInit() {
+    // Set up global function for popup button clicks
+    (window as any).viewDoctorDetails = (doctorId: string) => {
+      this.router.navigate(['/doctor', doctorId]);
+    };
+
+    setTimeout(() => this.initMap(), 100);
+  }
+
+  ngOnDestroy() {
+    // Clean up global function
+    delete (window as any).viewDoctorDetails;
+
+    if (this.map) {
+      this.map.remove();
+    }
+  }
+
+  private initMap() {
+    // Center on Austria
+    this.map = L.map(this.mapContainer.nativeElement, {
+      center: [47.5162, 14.5501],
+      zoom: 7,
+      zoomControl: true
+    });
+
+    // Add OpenStreetMap tiles
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: '© OpenStreetMap contributors',
+      maxZoom: 18
+    }).addTo(this.map);
+
+    // Add doctors as markers
+    this.addDoctorMarkers();
+    this.createHeatmapLayer();
+  }
+
+  private addDoctorMarkers() {
+    if (!this.map) return;
+
+    // Clear existing markers
+    this.markers.forEach(marker => marker.remove());
+    this.markers = [];
+
+    const doctors = this.allDoctors();
+
+    doctors.forEach(doctor => {
+      const marker = this.createMarker(doctor);
+      if (this.map) {
+        marker.addTo(this.map);
+        this.markers.push(marker);
+      }
+    });
+  }
+
+  private createMarker(doctor: Doctor): L.Marker {
+    const status = getVisitStatus(getLastVisit(doctor));
+    const lastVisit = getLastVisit(doctor);
+
+    // Color-coded marker icon
+    const iconColor = this.getMarkerColor(status);
+    const icon = L.divIcon({
+      className: 'custom-marker',
+      html: `<div style="background-color: ${iconColor}; width: 24px; height: 24px; border-radius: 50%; border: 3px solid white; box-shadow: 0 2px 4px rgba(0,0,0,0.3);"></div>`,
+      iconSize: [24, 24],
+      iconAnchor: [12, 12]
+    });
+
+    const marker = L.marker([doctor.lat, doctor.lng], { icon });
+
+    // Popup content
+    const lastVisitText = lastVisit
+      ? `Letzter Besuch: ${this.formatDate(lastVisit)}`
+      : 'Noch nie besucht';
+
+    const popupContent = `
+      <div class="map-popup">
+        <h3>${doctor.name}</h3>
+        <p><strong>${doctor.specialty}</strong></p>
+        <p>${doctor.address}<br>${doctor.city}</p>
+        <p class="status-${status}">${lastVisitText}</p>
+        <p><small>${doctor.visits.length} Besuch(e) gesamt</small></p>
+        <button class="view-details-btn" onclick="window.viewDoctorDetails('${doctor.id}')">
+          Details anzeigen
+        </button>
+      </div>
+    `;
+
+    marker.bindPopup(popupContent);
+
+    return marker;
+  }
+
+  private getMarkerColor(status: string): string {
+    switch (status) {
+      case 'current': return '#2dd36f'; // green
+      case 'due-soon': return '#ffc409'; // yellow
+      case 'overdue': return '#eb445a'; // red
+      default: return '#92949c'; // gray
+    }
+  }
+
+  private createHeatmapLayer() {
+    if (!this.map) return;
+
+    const doctors = this.allDoctors();
+    const heatData: [number, number, number][] = doctors.map(d => [
+      d.lat,
+      d.lng,
+      d.visits.length > 0 ? 0.8 : 0.3
+    ]);
+
+    this.heatmapLayer = (L as any).heatLayer(heatData, {
+      radius: 25,
+      blur: 15,
+      maxZoom: 17,
+      max: 1.0,
+      gradient: {
+        0.0: 'blue',
+        0.5: 'lime',
+        0.7: 'yellow',
+        1.0: 'red'
+      }
+    });
+  }
+
+  toggleHeatmap() {
+    if (!this.map || !this.heatmapLayer) return;
+
+    this.showHeatmap = !this.showHeatmap;
+
+    if (this.showHeatmap) {
+      this.heatmapLayer.addTo(this.map);
+    } else {
+      this.heatmapLayer.remove();
+    }
+  }
+
+  centerOnAustria() {
+    if (this.map) {
+      this.map.setView([47.5162, 14.5501], 7);
+    }
+  }
+
+  private formatDate(date: Date): string {
+    const today = new Date();
+    const diffDays = Math.floor((today.getTime() - date.getTime()) / (1000 * 60 * 60 * 24));
+
+    if (diffDays === 0) return 'Heute';
+    if (diffDays === 1) return 'Gestern';
+    if (diffDays < 7) return `Vor ${diffDays} Tagen`;
+
+    return date.toLocaleDateString('de-AT', {
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric'
+    });
+  }
+}
