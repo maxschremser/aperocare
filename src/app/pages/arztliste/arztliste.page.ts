@@ -1,4 +1,4 @@
-import { Component, computed, signal } from '@angular/core';
+import { Component, computed, signal, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import {
@@ -37,9 +37,9 @@ import {
   calendarOutline,
   globeOutline
 } from 'ionicons/icons';
-import { Router } from '@angular/router';
+import { Router, ActivatedRoute } from '@angular/router';
 import { ModalController } from '@ionic/angular/standalone';
-import { DoctorService } from '../../services/doctor.service';
+import { FirebaseDoctorService } from '../../services/firebase-doctor.service';
 import { Doctor, getVisitStatus, getLastVisit } from '../../models/doctor.model';
 import { DoctorFormModal } from '../../modals/doctor-form/doctor-form.modal';
 
@@ -76,11 +76,11 @@ type FilterType = 'all' | 'current' | 'due-soon' | 'overdue';
     IonButton
   ]
 })
-export class ArztlistePage {
+export class ArztlistePage implements OnInit {
   searchTerm = signal('');
   selectedFilter = signal<FilterType>('all');
 
-  protected doctorService!: DoctorService;
+  protected doctorService!: FirebaseDoctorService;
   allDoctors = computed(() => this.doctorService.allDoctors());
 
   // Filtered and searched doctors
@@ -121,9 +121,10 @@ export class ArztlistePage {
   );
 
   constructor(
-    doctorService: DoctorService,
+    doctorService: FirebaseDoctorService,
     private modalController: ModalController,
-    private router: Router
+    private router: Router,
+    private route: ActivatedRoute
   ) {
     this.doctorService = doctorService;
     addIcons({
@@ -136,6 +137,14 @@ export class ArztlistePage {
       createOutline,
       calendarOutline,
       globeOutline
+    });
+  }
+
+  ngOnInit() {
+    this.route.queryParams.subscribe(params => {
+      if (params['filter']) {
+        this.selectedFilter.set(params['filter'] as FilterType);
+      }
     });
   }
 

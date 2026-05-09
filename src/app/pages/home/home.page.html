@@ -16,7 +16,7 @@
       <ion-col size="6">
         <ion-card class="stat-card" (click)="navigateTo('/tabs/arztliste')">
           <ion-card-content>
-            <ion-icon name="list-outline" color="primary"></ion-icon>
+            <ion-icon name="people-outline" color="primary"></ion-icon>
             <div class="stat-value">{{ totalDoctors() }}</div>
             <div class="stat-label">Ärzte</div>
           </ion-card-content>
@@ -31,12 +31,30 @@
           </ion-card-content>
         </ion-card>
       </ion-col>
+      <ion-col size="6">
+        <ion-card class="stat-card" (click)="navigateTo('/tabs/devices')">
+          <ion-card-content>
+            <ion-icon name="hardware-chip-outline" color="tertiary"></ion-icon>
+            <div class="stat-value">{{ totalActiveDevices() }}</div>
+            <div class="stat-label">Verliehene Geräte</div>
+          </ion-card-content>
+        </ion-card>
+      </ion-col>
+      <ion-col size="6">
+        <ion-card class="stat-card" (click)="showNearbyDoctors()">
+          <ion-card-content>
+            <ion-icon name="location-outline" color="warning"></ion-icon>
+            <div class="stat-value">{{ nearbyDoctors().length }}</div>
+            <div class="stat-label">Jetzt geöffnet</div>
+          </ion-card-content>
+        </ion-card>
+      </ion-col>
     </ion-row>
   </ion-grid>
 
   <!-- Alerts -->
   <div class="ion-padding" *ngIf="overdueDoctors().length > 0 || dueSoonDoctors().length > 0">
-    <ion-card class="alert-card danger" *ngIf="overdueDoctors().length > 0" (click)="navigateTo('/tabs/arztliste')">
+    <ion-card class="alert-card danger" *ngIf="overdueDoctors().length > 0" (click)="navigateToArztlisteWithFilter('overdue')">
       <ion-card-content>
         <div class="alert-content">
           <ion-icon name="warning-outline" color="danger"></ion-icon>
@@ -48,7 +66,7 @@
       </ion-card-content>
     </ion-card>
 
-    <ion-card class="alert-card warning" *ngIf="dueSoonDoctors().length > 0" (click)="navigateTo('/tabs/arztliste')">
+    <ion-card class="alert-card warning" *ngIf="dueSoonDoctors().length > 0" (click)="navigateToArztlisteWithFilter('due-soon')">
       <ion-card-content>
         <div class="alert-content">
           <ion-icon name="checkmark-circle-outline" color="warning"></ion-icon>
@@ -85,7 +103,7 @@
         <ion-col size="6">
           <ion-card class="action-card" (click)="navigateTo('/tabs/arztliste')">
             <ion-card-content>
-              <ion-icon name="list-outline" color="primary"></ion-icon>
+              <ion-icon name="people-outline" color="primary"></ion-icon>
               <div class="action-label">Ärzte</div>
             </ion-card-content>
           </ion-card>

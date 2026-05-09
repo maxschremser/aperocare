@@ -28,10 +28,13 @@ import {
   calendarOutline,
   warningOutline,
   checkmarkCircleOutline,
-  chevronForwardOutline
+  chevronForwardOutline,
+  hardwareChipOutline,
+  locationOutline,
+  peopleOutline
 } from 'ionicons/icons';
-import { DoctorService } from '../../services/doctor.service';
-import { getVisitStatus, getLastVisit } from '../../models/doctor.model';
+import { FirebaseDoctorService } from '../../services/firebase-doctor.service';
+import { getVisitStatus, getLastVisit, countActiveDevices } from '../../models/doctor.model';
 
 @Component({
   selector: 'app-home',
@@ -57,7 +60,7 @@ import { getVisitStatus, getLastVisit } from '../../models/doctor.model';
   ]
 })
 export class HomePage {
-  protected doctorService!: DoctorService;
+  protected doctorService!: FirebaseDoctorService;
 
   allDoctors = computed(() => this.doctorService.allDoctors());
 
@@ -160,8 +163,27 @@ export class HomePage {
     return visits.sort((a, b) => a.date.getTime() - b.date.getTime()).slice(0, 5);
   });
 
+  totalActiveDevices = computed(() => {
+    return this.allDoctors().reduce((total, doctor) => {
+      return total + countActiveDevices(doctor);
+    }, 0);
+  });
+
+  nearbyDoctors = computed(() => {
+    // For now, show doctors within a certain distance or with recent visits
+    // This is a simplified version - you could enhance with geolocation
+    const now = new Date();
+    const currentHour = now.getHours();
+
+    // Assume typical office hours 8-18
+    if (currentHour >= 8 && currentHour < 18) {
+      return this.allDoctors().filter(d => d.city && d.address);
+    }
+    return [];
+  });
+
   constructor(
-    doctorService: DoctorService,
+    doctorService: FirebaseDoctorService,
     private router: Router
   ) {
     this.doctorService = doctorService;
@@ -174,12 +196,19 @@ export class HomePage {
       calendarOutline,
       warningOutline,
       checkmarkCircleOutline,
-      chevronForwardOutline
+      chevronForwardOutline,
+      hardwareChipOutline,
+      locationOutline,
+      peopleOutline
     });
   }
 
   navigateTo(path: string) {
     this.router.navigate([path]);
+  }
+
+  navigateToArztlisteWithFilter(filter: string) {
+    this.router.navigate(['/tabs/arztliste'], { queryParams: { filter } });
   }
 
   navigateToDoctor(doctorId: string) {
@@ -234,5 +263,9 @@ export class HomePage {
     if (hour < 12) return 'Guten Morgen';
     if (hour < 18) return 'Guten Tag';
     return 'Guten Abend';
+  }
+
+  showNearbyDoctors() {
+    this.navigateTo('/tabs/karte');
   }
 }
