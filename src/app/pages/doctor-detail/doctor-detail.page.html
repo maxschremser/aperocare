@@ -138,6 +138,96 @@
       </ion-card-content>
     </ion-card>
 
+    <!-- Devices Section -->
+    <ion-card>
+      <ion-card-header>
+        <div style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
+          <ion-card-title style="margin: 0;">
+            <ion-icon name="hardware-chip-outline"></ion-icon>
+            Verliehene Geräte
+            <ion-badge color="primary" *ngIf="activeDevices().length > 0">
+              {{ activeDevices().length }}
+            </ion-badge>
+          </ion-card-title>
+          <ion-button size="small" (click)="addDevice()">
+            <ion-icon slot="start" name="add-outline"></ion-icon>
+            Gerät verleihen
+          </ion-button>
+        </div>
+      </ion-card-header>
+
+      <ion-card-content>
+        <ion-list *ngIf="allDevices().length > 0; else noDevices">
+          <ion-item *ngFor="let device of allDevices()" [lines]="'full'">
+            <ion-icon
+              slot="start"
+              [name]="device.status === 'active' ? 'hardware-chip-outline' : 'checkmark-circle-outline'"
+              [color]="device.status === 'active' ? 'primary' : 'success'"
+            ></ion-icon>
+
+            <ion-label>
+              <h2>{{ device.name }}</h2>
+              <p *ngIf="device.serialNumber">SN: {{ device.serialNumber }}</p>
+              <p>
+                <ion-text color="medium">
+                  Verliehen: {{ formatDeviceDate(device.loanDate) }}
+                </ion-text>
+                <span *ngIf="device.status === 'active'">
+                  ({{ getDeviceLoanDuration(device) }} Tage)
+                </span>
+              </p>
+              <p *ngIf="device.returnDate">
+                <ion-text color="success">
+                  Zurückgegeben: {{ formatDeviceDate(device.returnDate) }}
+                </ion-text>
+              </p>
+              <p *ngIf="device.notes" class="device-notes">
+                <ion-text color="medium">{{ device.notes }}</ion-text>
+              </p>
+            </ion-label>
+
+            <div slot="end" class="device-actions">
+              <ion-button
+                *ngIf="device.status === 'active'"
+                size="small"
+                fill="outline"
+                color="success"
+                (click)="returnDevice(device)"
+              >
+                <ion-icon slot="icon-only" name="return-down-back-outline"></ion-icon>
+              </ion-button>
+              <ion-button
+                size="small"
+                fill="outline"
+                (click)="editDevice(device)"
+              >
+                <ion-icon slot="icon-only" name="create-outline"></ion-icon>
+              </ion-button>
+              <ion-button
+                size="small"
+                fill="outline"
+                color="danger"
+                (click)="deleteDevice(device)"
+              >
+                <ion-icon slot="icon-only" name="trash-outline"></ion-icon>
+              </ion-button>
+            </div>
+          </ion-item>
+        </ion-list>
+
+        <ng-template #noDevices>
+          <div class="empty-state">
+            <ion-icon name="hardware-chip-outline" color="medium"></ion-icon>
+            <p>Keine Geräte verliehen</p>
+            <ion-button (click)="addDevice()" size="small">
+              <ion-icon slot="start" name="add-outline"></ion-icon>
+              Gerät verleihen
+            </ion-button>
+          </div>
+        </ng-template>
+      </ion-card-content>
+    </ion-card>
+
     <ion-fab slot="fixed" vertical="bottom" horizontal="end">
       <ion-fab-button (click)="addVisit()">
         <ion-icon name="add-outline"></ion-icon>

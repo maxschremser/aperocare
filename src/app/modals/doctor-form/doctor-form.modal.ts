@@ -1,4 +1,4 @@
-import { Component, Input, signal } from '@angular/core';
+import { Component, Input, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import {
@@ -25,10 +25,11 @@ import {
 } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
 import { closeOutline, saveOutline, trashOutline, searchOutline, arrowForwardOutline } from 'ionicons/icons';
-import { DoctorService } from '../../services/doctor.service';
+import { FirebaseDoctorService } from '../../services/firebase-doctor.service';
+import { UserSettingsService } from '../../services/user-settings.service';
 import { GeocodingService } from '../../services/geocoding.service';
 import { OverpassService } from '../../services/overpass.service';
-import { Doctor, SPECIALTIES, VIENNA_DISTRICTS } from '../../models/doctor.model';
+import { Doctor, VIENNA_DISTRICTS } from '../../models/doctor.model';
 
 interface SearchResult {
   id: string;
@@ -85,7 +86,6 @@ export class DoctorFormModal {
   lat = signal(0);
   lng = signal(0);
 
-  specialties = SPECIALTIES;
   viennaDistricts = VIENNA_DISTRICTS;
 
   isGeocoding = signal(false);
@@ -97,9 +97,12 @@ export class DoctorFormModal {
   isSearching = signal(false);
   hasSearched = signal(false);
 
+  specialties = computed(() => this.settingsService.specialties());
+
   constructor(
     private modalController: ModalController,
-    private doctorService: DoctorService,
+    private doctorService: FirebaseDoctorService,
+    private settingsService: UserSettingsService,
     private geocodingService: GeocodingService,
     private overpassService: OverpassService
   ) {
@@ -174,34 +177,34 @@ export class DoctorFormModal {
       const lat = this.lat() !== 0 ? this.lat() : 0;
       const lng = this.lng() !== 0 ? this.lng() : 0;
 
+      // Build doctor data, only include optional fields if they have values
+      const doctorData: any = {
+        name: this.name(),
+        specialty: this.specialty(),
+        address: this.address(),
+        city: this.city(),
+        notes: this.notes(),
+        lat: lat,
+        lng: lng
+      };
+
+      // Only add optional fields if they have values
+      if (this.district()) {
+        doctorData.district = this.district();
+      }
+      if (this.telephone()) {
+        doctorData.telephone = this.telephone();
+      }
+      if (this.website()) {
+        doctorData.website = this.website();
+      }
+
       if (this.mode === 'edit' && this.doctor) {
         // Update existing doctor
-        this.doctorService.updateDoctor(this.doctor.id, {
-          name: this.name(),
-          specialty: this.specialty(),
-          address: this.address(),
-          city: this.city(),
-          district: this.district() || undefined,
-          telephone: this.telephone() || undefined,
-          website: this.website() || undefined,
-          notes: this.notes(),
-          lat: lat,
-          lng: lng
-        });
+        await this.doctorService.updateDoctor(this.doctor.id, doctorData);
       } else {
         // Add new doctor
-        this.doctorService.addDoctor({
-          name: this.name(),
-          specialty: this.specialty(),
-          address: this.address(),
-          city: this.city(),
-          district: this.district() || undefined,
-          telephone: this.telephone() || undefined,
-          website: this.website() || undefined,
-          notes: this.notes(),
-          lat: lat,
-          lng: lng
-        });
+        await this.doctorService.addDoctor(doctorData);
       }
 
       await this.modalController.dismiss({ saved: true });
@@ -220,7 +223,7 @@ export class DoctorFormModal {
     if (!confirmed) return;
 
     try {
-      this.doctorService.deleteDoctor(this.doctor.id);
+      await this.doctorService.deleteDoctor(this.doctor.id);
       await this.modalController.dismiss({ deleted: true });
     } catch (error) {
       console.error('Delete error:', error);

@@ -22,21 +22,25 @@ export interface Besuch {
 
 // Fachrichtungen für Dropdown
 export const FACHRICHTUNGEN = [
-  'Allgemeinmedizin',
-  'Innere Medizin',
-  'Gynäkologie',
-  'Kardiologie',
-  'Dermatologie',
-  'Orthopädie',
-  'Neurologie',
-  'Psychiatrie',
-  'Pädiatrie',
-  'Urologie',
+  'Allgemeinmediziner',
+  'Kinderarzt',
+  'Dermatologe',
+  'Gynäkologe',
   'HNO',
-  'Augenheilkunde',
-  'Radiologie',
-  'Anästhesiologie',
+  'Pulmologe',
   'Chirurgie',
+] as const;
+
+export const GERAETE = [
+  'FeNO',
+  'RP-Check',
+  'Minibox',
+  'AirFeel',
+  'AirFeel IMT',
+  'Hygienebox',
+  'Saalio',
+  'Saalux',
+  'Trevolux'
 ] as const;
 
 // Wiener Bezirke

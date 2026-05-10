@@ -40,6 +40,18 @@
         "strategy": "freshness",
         "timeout": "5s"
       }
+    },
+    {
+      "name": "firebase-auth",
+      "urls": [
+        "https://identitytoolkit.googleapis.com/**",
+        "https://securetoken.googleapis.com/**"
+      ],
+      "cacheConfig": {
+        "strategy": "freshness",
+        "maxAge": "0",
+        "timeout": "10s"
+      }
     }
   ],
   "navigationUrls": [

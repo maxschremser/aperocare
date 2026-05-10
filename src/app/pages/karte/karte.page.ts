@@ -14,7 +14,7 @@ import {
 } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
 import { locateOutline, layersOutline } from 'ionicons/icons';
-import { DoctorService } from '../../services/doctor.service';
+import { FirebaseDoctorService } from '../../services/firebase-doctor.service';
 import { GooglePlacesService } from '../../services/google-places.service';
 import { Doctor, getVisitStatus, getLastVisit } from '../../models/doctor.model';
 
@@ -50,11 +50,11 @@ export class KartePage implements OnInit, OnDestroy {
   private heatmap: google.maps.visualization.HeatmapLayer | null = null;
   showHeatmap = false;
 
-  protected doctorService!: DoctorService;
+  protected doctorService!: FirebaseDoctorService;
   allDoctors = computed(() => this.doctorService.allDoctors());
 
   constructor(
-    doctorService: DoctorService,
+    doctorService: FirebaseDoctorService,
     private router: Router,
     private googlePlacesService: GooglePlacesService
   ) {

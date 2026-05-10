@@ -28,7 +28,7 @@ import {
   calendarOutline,
   timeOutline
 } from 'ionicons/icons';
-import { DoctorService } from '../../services/doctor.service';
+import { FirebaseDoctorService } from '../../services/firebase-doctor.service';
 import { getVisitStatus, getLastVisit } from '../../models/doctor.model';
 
 @Component({
@@ -56,7 +56,7 @@ import { getVisitStatus, getLastVisit } from '../../models/doctor.model';
   ]
 })
 export class StatistikPage {
-  protected doctorService!: DoctorService;
+  protected doctorService!: FirebaseDoctorService;
 
   allDoctors = computed(() => this.doctorService.allDoctors());
 
@@ -129,7 +129,7 @@ export class StatistikPage {
       .slice(0, 5);
   });
 
-  constructor(doctorService: DoctorService) {
+  constructor(doctorService: FirebaseDoctorService) {
     this.doctorService = doctorService;
     addIcons({
       peopleOutline,

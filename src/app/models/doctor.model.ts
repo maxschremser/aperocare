@@ -1,3 +1,14 @@
+// Data model for a device (Gerät)
+export interface Device {
+  id: string;
+  name: string; // z.B. "EKG-Gerät", "Blutdruckmessgerät"
+  serialNumber?: string; // Seriennummer
+  loanDate: string; // ISO Date - Wann wurde es verliehen
+  returnDate?: string; // ISO Date - Wann wurde es zurückgegeben (optional)
+  notes?: string; // Notizen zum Gerät
+  status: 'active' | 'returned'; // Status
+}
+
 // Data model for a doctor
 export interface Doctor {
   id: string;
@@ -12,6 +23,7 @@ export interface Doctor {
   website?: string; // Optional: Website URL
   notes: string;
   visits: Visit[];
+  devices?: Device[]; // Verliehene Geräte
 }
 
 // Data model for a visit
@@ -94,4 +106,20 @@ export function getLastVisit(doctor: Doctor): Date | null {
   );
 
   return new Date(sorted[0].date);
+}
+
+// Helper function: Get active devices (not returned yet)
+export function getActiveDevices(doctor: Doctor): Device[] {
+  if (!doctor.devices) return [];
+  return doctor.devices.filter(d => d.status === 'active');
+}
+
+// Helper function: Get all devices (including returned)
+export function getAllDevices(doctor: Doctor): Device[] {
+  return doctor.devices || [];
+}
+
+// Helper function: Count active devices
+export function countActiveDevices(doctor: Doctor): number {
+  return getActiveDevices(doctor).length;
 }

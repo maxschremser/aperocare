@@ -22,9 +22,9 @@ import {
 } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
 import { searchOutline, addCircleOutline, locationOutline, callOutline, globeOutline } from 'ionicons/icons';
-import { DoctorService } from '../../services/doctor.service';
+import { FirebaseDoctorService } from '../../services/firebase-doctor.service';
 import { GooglePlacesService, PlaceResult } from '../../services/google-places.service';
-import { SPECIALTIES } from '../../models/doctor.model';
+import { UserSettingsService } from '../../services/user-settings.service';
 
 interface SearchDoctor {
   id: string;
@@ -75,12 +75,13 @@ export class ArztsuchePage implements AfterViewInit {
   isLoading = signal(false);
   hasSearched = signal(false);
 
-  specialties = SPECIALTIES;
+  protected doctorService!: FirebaseDoctorService;
 
-  protected doctorService!: DoctorService;
+  specialties = computed(() => this.settingsService.specialties());
 
   constructor(
-    doctorService: DoctorService,
+    doctorService: FirebaseDoctorService,
+    private settingsService: UserSettingsService,
     private googlePlacesService: GooglePlacesService
   ) {
     this.doctorService = doctorService;
@@ -150,9 +151,10 @@ export class ArztsuchePage implements AfterViewInit {
       if (doctors.length === 0) {
         alert('Keine Ärzte gefunden. Versuchen Sie eine andere Suche.');
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Search error:', error);
-      alert('Fehler bei der Suche. Bitte überprüfen Sie Ihre Internetverbindung und versuchen Sie es erneut.');
+      const errorMessage = error?.message || 'Fehler bei der Suche. Bitte überprüfen Sie Ihre Internetverbindung und versuchen Sie es erneut.';
+      alert(errorMessage);
       this.searchResults.set([]);
     } finally {
       this.isLoading.set(false);
@@ -211,18 +213,26 @@ export class ArztsuchePage implements AfterViewInit {
       return;
     }
 
-    // Add doctor
-    this.doctorService.addDoctor({
+    // Add doctor - build data without undefined fields
+    const doctorData: any = {
       name: doctor.name,
       specialty: doctor.specialty || 'Allgemeinmedizin',
       address: doctor.address,
       city: doctor.city,
       lat: doctor.lat,
       lng: doctor.lng,
-      telephone: doctor.phone,
-      website: doctor.website,
       notes: ''
-    });
+    };
+
+    // Only add optional fields if they have values
+    if (doctor.phone) {
+      doctorData.telephone = doctor.phone;
+    }
+    if (doctor.website) {
+      doctorData.website = doctor.website;
+    }
+
+    this.doctorService.addDoctor(doctorData);
 
     alert(`${doctor.name} wurde hinzugefügt!`);
   }

@@ -21,7 +21,7 @@ import {
 } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
 import { closeOutline, saveOutline, calendarOutline } from 'ionicons/icons';
-import { DoctorService } from '../../services/doctor.service';
+import { FirebaseDoctorService } from '../../services/firebase-doctor.service';
 import { Doctor } from '../../models/doctor.model';
 
 @Component({
@@ -63,7 +63,7 @@ export class VisitFormModal implements OnInit {
 
   constructor(
     private modalController: ModalController,
-    private doctorService: DoctorService
+    private doctorService: FirebaseDoctorService
   ) {
     addIcons({ closeOutline, saveOutline, calendarOutline });
   }
@@ -88,13 +88,13 @@ export class VisitFormModal implements OnInit {
 
     try {
       if (this.mode === 'edit' && this.originalDate) {
-        this.doctorService.updateVisit(this.doctor.id, this.originalDate, {
+        await this.doctorService.updateVisit(this.doctor.id, this.originalDate, {
           date: this.date(),
           durationMinutes: this.durationMinutes(),
           note: this.note()
         });
       } else {
-        this.doctorService.addVisit(this.doctor.id, {
+        await this.doctorService.addVisit(this.doctor.id, {
           date: this.date(),
           durationMinutes: this.durationMinutes(),
           note: this.note()

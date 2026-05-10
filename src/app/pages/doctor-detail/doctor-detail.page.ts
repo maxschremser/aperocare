@@ -21,6 +21,7 @@ import {
   IonFabButton,
   IonIcon,
   IonButton,
+  IonText,
   ModalController,
   NavController
 } from '@ionic/angular/standalone';
@@ -39,12 +40,16 @@ import {
   trashOutline,
   globeOutline,
   openOutline,
-  call
+  call,
+  hardwareChipOutline,
+  checkmarkCircleOutline,
+  returnDownBackOutline
 } from 'ionicons/icons';
-import { DoctorService } from '../../services/doctor.service';
-import { Doctor, getVisitStatus, getLastVisit } from '../../models/doctor.model';
+import { FirebaseDoctorService } from '../../services/firebase-doctor.service';
+import { Doctor, getVisitStatus, getLastVisit, Device, getActiveDevices } from '../../models/doctor.model';
 import { DoctorFormModal } from '../../modals/doctor-form/doctor-form.modal';
 import { VisitFormModal } from '../../modals/visit-form/visit-form.modal';
+import { DeviceFormModal } from '../../modals/device-form/device-form.modal';
 
 @Component({
   selector: 'app-doctor-detail',
@@ -70,11 +75,12 @@ import { VisitFormModal } from '../../modals/visit-form/visit-form.modal';
     IonFab,
     IonFabButton,
     IonIcon,
-    IonButton
+    IonButton,
+    IonText
   ]
 })
 export class DoctorDetailPage implements OnInit {
-  protected doctorService!: DoctorService;
+  protected doctorService!: FirebaseDoctorService;
   doctorId: string = '';
   doctor = computed(() => {
     return this.doctorService.allDoctors().find(d => d.id === this.doctorId);
@@ -88,6 +94,18 @@ export class DoctorDetailPage implements OnInit {
     );
   });
 
+  activeDevices = computed(() => {
+    const doc = this.doctor();
+    if (!doc) return [];
+    return getActiveDevices(doc);
+  });
+
+  allDevices = computed(() => {
+    const doc = this.doctor();
+    if (!doc) return [];
+    return doc.devices || [];
+  });
+
   private speechSynthesis: SpeechSynthesis | null = null;
   private currentUtterance: SpeechSynthesisUtterance | null = null;
   speakingNoteIndex: number | null = null;
@@ -99,7 +117,7 @@ export class DoctorDetailPage implements OnInit {
     private route: ActivatedRoute,
     private modalController: ModalController,
     private navController: NavController,
-    doctorService: DoctorService
+    doctorService: FirebaseDoctorService
   ) {
     this.doctorService = doctorService;
     addIcons({
@@ -116,7 +134,10 @@ export class DoctorDetailPage implements OnInit {
       trashOutline,
       globeOutline,
       openOutline,
-      call
+      call,
+      hardwareChipOutline,
+      checkmarkCircleOutline,
+      returnDownBackOutline
     });
 
     if ('speechSynthesis' in window) {
@@ -382,7 +403,82 @@ export class DoctorDetailPage implements OnInit {
     );
 
     if (confirm) {
-      this.doctorService.deleteVisit(doc.id, visit.date);
+      await this.doctorService.deleteVisit(doc.id, visit.date);
     }
+  }
+
+  // ===== DEVICE MANAGEMENT =====
+
+  async addDevice() {
+    const doc = this.doctor();
+    if (!doc) return;
+
+    const modal = await this.modalController.create({
+      component: DeviceFormModal,
+      componentProps: {
+        doctor: doc,
+        mode: 'add'
+      }
+    });
+
+    await modal.present();
+  }
+
+  async editDevice(device: Device) {
+    const doc = this.doctor();
+    if (!doc) return;
+
+    const modal = await this.modalController.create({
+      component: DeviceFormModal,
+      componentProps: {
+        doctor: doc,
+        device: device,
+        mode: 'edit'
+      }
+    });
+
+    await modal.present();
+  }
+
+  async returnDevice(device: Device) {
+    const doc = this.doctor();
+    if (!doc) return;
+
+    const confirm = window.confirm(
+      `Möchten Sie das Gerät "${device.name}" als zurückgegeben markieren?`
+    );
+
+    if (confirm) {
+      await this.doctorService.returnDevice(doc.id, device.id);
+    }
+  }
+
+  async deleteDevice(device: Device) {
+    const doc = this.doctor();
+    if (!doc) return;
+
+    const confirm = window.confirm(
+      `Möchten Sie das Gerät "${device.name}" wirklich löschen?`
+    );
+
+    if (confirm) {
+      await this.doctorService.deleteDevice(doc.id, device.id);
+    }
+  }
+
+  formatDeviceDate(dateString: string): string {
+    const date = new Date(dateString);
+    return date.toLocaleDateString('de-AT', {
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric'
+    });
+  }
+
+  getDeviceLoanDuration(device: Device): number {
+    const loanDate = new Date(device.loanDate);
+    const endDate = device.returnDate ? new Date(device.returnDate) : new Date();
+    const diffDays = Math.floor((endDate.getTime() - loanDate.getTime()) / (1000 * 60 * 60 * 24));
+    return diffDays;
   }
 }

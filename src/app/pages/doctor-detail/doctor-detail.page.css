@@ -177,3 +177,32 @@ ion-note ion-button {
   z-index: 1;
   color: #4682b4;
 }
+
+/* Device Styles */
+.device-actions {
+  display: flex;
+  gap: 4px;
+  align-items: center;
+}
+
+.device-notes {
+  font-style: italic;
+  font-size: 0.9rem !important;
+  margin-top: 4px;
+}
+
+.empty-state {
+  text-align: center;
+  padding: 2rem 1rem;
+}
+
+.empty-state ion-icon {
+  font-size: 4rem;
+  margin-bottom: 1rem;
+}
+
+.empty-state p {
+  color: #64748b;
+  margin-bottom: 1rem;
+  font-size: 1rem;
+}

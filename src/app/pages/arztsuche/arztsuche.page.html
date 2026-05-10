@@ -43,7 +43,7 @@
         (ionChange)="onSpecialtyChange($event)"
       >
         <ion-select-option value="">Alle Fachrichtungen</ion-select-option>
-        <ion-select-option *ngFor="let specialty of specialties" [value]="specialty">
+        <ion-select-option *ngFor="let specialty of specialties()" [value]="specialty">
           {{ specialty }}
         </ion-select-option>
       </ion-select>

@@ -38,7 +38,7 @@
         [value]="specialty()"
         (ionChange)="onSpecialtyChange($event)"
       >
-        <ion-select-option *ngFor="let spec of specialties" [value]="spec">
+        <ion-select-option *ngFor="let spec of specialties()" [value]="spec">
           {{ spec }}
         </ion-select-option>
       </ion-select>

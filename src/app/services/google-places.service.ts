@@ -56,8 +56,11 @@ export class GooglePlacesService {
         resolve();
       };
 
-      script.onerror = () => {
-        reject(new Error('Google Maps API konnte nicht geladen werden'));
+      script.onerror = (error) => {
+        console.error('Google Maps script load error:', error);
+        console.error('Script URL:', script.src);
+        console.error('API Key:', environment.googleMapsApiKey);
+        reject(new Error('Google Maps API konnte nicht geladen werden. Bitte API-Schlüssel in der Google Cloud Console überprüfen.'));
       };
 
       document.head.appendChild(script);
@@ -66,68 +69,97 @@ export class GooglePlacesService {
     return this.loadPromise;
   }
 
-  // Search for doctors near a location
+  // Search for doctors near a location using new Places API (REST)
   async searchDoctorsNearby(city: string, radius: number = 10000): Promise<PlaceResult[]> {
-    await this.loadGoogleMapsApi();
-
-    return new Promise((resolve, reject) => {
-      const geocoder = new window.google.maps.Geocoder();
-
+    try {
       // First, geocode the city
-      geocoder.geocode({ address: `${city}, Austria` }, (results: any, status: any) => {
-        if (status !== 'OK' || !results || results.length === 0) {
-          reject(new Error('Stadt konnte nicht gefunden werden'));
-          return;
-        }
+      const geocodeUrl = `https://maps.googleapis.com/maps/api/geocode/json?address=${encodeURIComponent(city + ', Austria')}&key=${environment.googleMapsApiKey}`;
+      const geocodeResponse = await fetch(geocodeUrl);
+      const geocodeData = await geocodeResponse.json();
 
-        const location = results[0].geometry.location;
-        const service = new window.google.maps.places.PlacesService(document.createElement('div'));
+      if (geocodeData.status !== 'OK' || !geocodeData.results?.length) {
+        throw new Error('Stadt konnte nicht gefunden werden');
+      }
 
-        const request = {
-          location: location,
-          radius: radius,
-          type: 'doctor',
-          language: 'de'
-        };
+      const location = geocodeData.results[0].geometry.location;
 
-        service.nearbySearch(request, (results: any, status: any) => {
-          if (status === 'OK' && results) {
-            const places = results.map((place: any) => this.mapPlaceToResult(place));
-            resolve(places);
-          } else if (status === 'ZERO_RESULTS') {
-            resolve([]);
-          } else {
-            reject(new Error('Fehler bei der Suche'));
-          }
-        });
+      // Use new Places API (REST)
+      const placesUrl = 'https://places.googleapis.com/v1/places:searchNearby';
+      const response = await fetch(placesUrl, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-Goog-Api-Key': environment.googleMapsApiKey,
+          'X-Goog-FieldMask': 'places.id,places.displayName,places.formattedAddress,places.location,places.internationalPhoneNumber,places.websiteUri,places.types'
+        },
+        body: JSON.stringify({
+          includedTypes: ['doctor', 'hospital'],
+          maxResultCount: 20,
+          locationRestriction: {
+            circle: {
+              center: {
+                latitude: location.lat,
+                longitude: location.lng
+              },
+              radius: radius
+            }
+          },
+          languageCode: 'de'
+        })
       });
-    });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        console.error('Places API error:', data);
+        throw new Error(data.error?.message || 'Fehler bei der Suche');
+      }
+
+      if (!data.places || data.places.length === 0) {
+        return [];
+      }
+
+      return data.places.map((place: any) => this.mapNewPlaceToResult(place));
+    } catch (error: any) {
+      console.error('Search error:', error);
+      throw error;
+    }
   }
 
-  // Text search for doctors
+  // Text search for doctors using new Places API
   async searchDoctorsByText(query: string): Promise<PlaceResult[]> {
-    await this.loadGoogleMapsApi();
-
-    return new Promise((resolve, reject) => {
-      const service = new window.google.maps.places.PlacesService(document.createElement('div'));
-
-      const request = {
-        query: `${query} Arzt Austria`,
-        type: 'doctor',
-        language: 'de'
-      };
-
-      service.textSearch(request, (results: any, status: any) => {
-        if (status === 'OK' && results) {
-          const places = results.map((place: any) => this.mapPlaceToResult(place));
-          resolve(places);
-        } else if (status === 'ZERO_RESULTS') {
-          resolve([]);
-        } else {
-          reject(new Error('Fehler bei der Suche'));
-        }
+    try {
+      const placesUrl = 'https://places.googleapis.com/v1/places:searchText';
+      const response = await fetch(placesUrl, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-Goog-Api-Key': environment.googleMapsApiKey,
+          'X-Goog-FieldMask': 'places.id,places.displayName,places.formattedAddress,places.location,places.internationalPhoneNumber,places.websiteUri,places.types'
+        },
+        body: JSON.stringify({
+          textQuery: `${query} Arzt Austria`,
+          languageCode: 'de',
+          maxResultCount: 20
+        })
       });
-    });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        console.error('Places API error:', data);
+        throw new Error(data.error?.message || 'Fehler bei der Suche');
+      }
+
+      if (!data.places || data.places.length === 0) {
+        return [];
+      }
+
+      return data.places.map((place: any) => this.mapNewPlaceToResult(place));
+    } catch (error: any) {
+      console.error('Search error:', error);
+      throw error;
+    }
   }
 
   // Get place details
@@ -182,7 +214,49 @@ export class GooglePlacesService {
     return autocomplete;
   }
 
-  // Map Google Place to our PlaceResult format
+  // Get human-readable error message from status
+  private getStatusErrorMessage(status: string): string {
+    switch (status) {
+      case 'REQUEST_DENIED':
+        return 'Google Places API Zugriff verweigert. Bitte API-Schlüssel überprüfen.';
+      case 'OVER_QUERY_LIMIT':
+        return 'API-Limit erreicht. Bitte später erneut versuchen.';
+      case 'INVALID_REQUEST':
+        return 'Ungültige Anfrage an Google Places API.';
+      case 'UNKNOWN_ERROR':
+        return 'Unbekannter Fehler. Bitte erneut versuchen.';
+      default:
+        return `Google Places API Fehler: ${status}`;
+    }
+  }
+
+  // Map new Places API format to our PlaceResult
+  private mapNewPlaceToResult(place: any): PlaceResult {
+    // Extract city from address
+    const addressParts = place.formattedAddress?.split(',') || [];
+    let city = 'Unbekannt';
+
+    if (addressParts.length >= 2) {
+      // Usually format is: "Street, Postal Code City, Country"
+      const cityPart = addressParts[addressParts.length - 2].trim();
+      // Remove postal code
+      city = cityPart.replace(/^\d+\s*/, '').trim();
+    }
+
+    return {
+      placeId: place.id,
+      name: place.displayName?.text || 'Unbekannt',
+      address: place.formattedAddress || '',
+      city: city,
+      lat: place.location?.latitude || 0,
+      lng: place.location?.longitude || 0,
+      phone: place.internationalPhoneNumber,
+      website: place.websiteUri,
+      types: place.types || []
+    };
+  }
+
+  // Map Google Place to our PlaceResult format (legacy - not used with new API)
   private mapPlaceToResult(place: any): PlaceResult {
     const addressComponents = place.address_components || [];
 
