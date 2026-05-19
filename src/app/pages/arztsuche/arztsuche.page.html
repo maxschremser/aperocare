@@ -10,30 +10,11 @@
       Finden Sie Ärzte über Google Places und fügen Sie sie direkt zu Ihrer Liste hinzu.
     </p>
 
-    <ion-segment [value]="searchMode()" (ionChange)="onSearchModeChange($event)">
-      <ion-segment-button value="city">
-        <ion-label>Nach Stadt</ion-label>
-      </ion-segment-button>
-      <ion-segment-button value="text">
-        <ion-label>Freitext</ion-label>
-      </ion-segment-button>
-    </ion-segment>
-
-    <div *ngIf="searchMode() === 'city'" class="search-mode">
-      <ion-searchbar
-        placeholder="Stadt eingeben (z.B. Wien, Graz...)"
-        [debounce]="300"
-        (ionInput)="onCityChange($event)"
-      ></ion-searchbar>
-    </div>
-
-    <div *ngIf="searchMode() === 'text'" class="search-mode">
-      <ion-searchbar
-        placeholder="Name oder Suchbegriff (z.B. Dr. Müller Graz...)"
-        [debounce]="300"
-        (ionInput)="onQueryChange($event)"
-      ></ion-searchbar>
-    </div>
+    <ion-searchbar
+      placeholder="Name oder Suchbegriff (z.B. Dr. Müller Graz...)"
+      [debounce]="300"
+      (ionInput)="onQueryChange($event)"
+    ></ion-searchbar>
 
     <ion-item>
       <ion-select
@@ -52,7 +33,7 @@
     <ion-button
       expand="block"
       (click)="onSearch()"
-      [disabled]="isLoading() || (searchMode() === 'city' && !searchCity()) || (searchMode() === 'text' && !searchQuery())"
+      [disabled]="isLoading() || !searchQuery()"
     >
       <ion-icon name="search-outline" slot="start"></ion-icon>
       {{ isLoading() ? 'Suche läuft...' : 'Suchen' }}
@@ -66,55 +47,63 @@
 
   <div *ngIf="!isLoading() && hasSearched()">
     <ion-list *ngIf="searchResults().length > 0; else noResults">
-      <ion-item *ngFor="let doctor of searchResults()">
-        <ion-label>
-          <h2><strong>{{ doctor.name }}</strong></h2>
-          <p *ngIf="doctor.specialty">
-            <ion-chip color="primary" style="margin-left: 0; height: 24px; font-size: 0.75rem;">
-              {{ doctor.specialty }}
-            </ion-chip>
-          </p>
-          <p>
-            <ion-icon name="location-outline"></ion-icon>
-            {{ doctor.address }}, {{ doctor.city }}
-          </p>
-          <p *ngIf="doctor.phone">
-            <ion-icon name="call-outline"></ion-icon>
-            {{ doctor.phone }}
-          </p>
-          <p *ngIf="doctor.website">
-            <ion-icon name="globe-outline"></ion-icon>
-            Website verfügbar
-          </p>
-        </ion-label>
-        <ion-button
-          slot="end"
-          fill="clear"
-          [disabled]="isDoctorAdded(doctor)"
-          (click)="addDoctor(doctor)"
-        >
-          <ion-icon
-            name="add-circle-outline"
-            slot="icon-only"
-            [color]="isDoctorAdded(doctor) ? 'medium' : 'primary'"
-          ></ion-icon>
-        </ion-button>
-        <ion-badge
-          *ngIf="isDoctorAdded(doctor)"
-          slot="end"
-          color="success"
-          style="margin-right: 8px;"
-        >
-          Hinzugefügt
-        </ion-badge>
-      </ion-item>
+      <ion-item-sliding *ngFor="let doctor of searchResults()">
+        <ion-item>
+          <ion-label>
+            <h2><strong>{{ doctor.name }}</strong></h2>
+            <p *ngIf="doctor.specialty">
+              <ion-chip color="primary" style="margin-left: 0; height: 24px; font-size: 0.75rem;">
+                {{ doctor.specialty }}
+              </ion-chip>
+            </p>
+            <p>
+              <ion-icon name="location-outline"></ion-icon>
+              {{ doctor.address }}, {{ doctor.city }}
+            </p>
+            <p *ngIf="doctor.phone">
+              <ion-icon name="call-outline"></ion-icon>
+              {{ doctor.phone }}
+            </p>
+            <p *ngIf="doctor.website">
+              <ion-icon name="globe-outline"></ion-icon>
+              Website verfügbar
+            </p>
+          </ion-label>
+          <ion-button
+            slot="end"
+            fill="clear"
+            [disabled]="isDoctorAdded(doctor)"
+            (click)="addDoctor(doctor)"
+          >
+            <ion-icon
+              name="add-circle-outline"
+              slot="icon-only"
+              [color]="isDoctorAdded(doctor) ? 'medium' : 'primary'"
+            ></ion-icon>
+          </ion-button>
+          <ion-badge
+            *ngIf="isDoctorAdded(doctor)"
+            slot="end"
+            color="success"
+            style="margin-right: 8px;"
+          >
+            Hinzugefügt
+          </ion-badge>
+        </ion-item>
+
+        <ion-item-options side="end" *ngIf="isDoctorAdded(doctor)">
+          <ion-item-option color="primary" (click)="editDoctor(doctor)">
+            <ion-icon name="create-outline" slot="icon-only"></ion-icon>
+          </ion-item-option>
+        </ion-item-options>
+      </ion-item-sliding>
     </ion-list>
 
     <ng-template #noResults>
       <div class="no-results ion-padding ion-text-center">
         <ion-icon name="search-outline" size="large" color="medium"></ion-icon>
         <h2>Keine Ärzte gefunden</h2>
-        <p>Versuchen Sie es mit einer anderen Stadt.</p>
+        <p>Versuchen Sie es mit einem anderen Suchbegriff.</p>
       </div>
     </ng-template>
   </div>
@@ -127,8 +116,7 @@
       und sie mit einem Klick zu Ihrer Liste hinzuzufügen.
     </p>
     <p style="font-size: 0.85rem; color: var(--ion-color-medium);">
-      <strong>Nach Stadt:</strong> Findet alle Ärzte in der Nähe einer Stadt<br>
-      <strong>Freitext:</strong> Suchen Sie nach Namen oder Orten (z.B. "Dr. Müller Linz")
+      Suchen Sie nach Namen oder Orten (z.B. "Dr. Müller Linz")
     </p>
   </div>
 </ion-content>

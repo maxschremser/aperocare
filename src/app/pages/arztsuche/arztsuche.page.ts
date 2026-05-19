@@ -17,14 +17,17 @@ import {
   IonSelectOption,
   IonChip,
   IonBadge,
-  IonSegment,
-  IonSegmentButton
+  IonItemSliding,
+  IonItemOptions,
+  IonItemOption,
+  ModalController
 } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
-import { searchOutline, addCircleOutline, locationOutline, callOutline, globeOutline } from 'ionicons/icons';
+import { searchOutline, addCircleOutline, locationOutline, callOutline, globeOutline, createOutline } from 'ionicons/icons';
 import { FirebaseDoctorService } from '../../services/firebase-doctor.service';
 import { GooglePlacesService, PlaceResult } from '../../services/google-places.service';
 import { UserSettingsService } from '../../services/user-settings.service';
+import { DoctorFormModal } from '../../modals/doctor-form/doctor-form.modal';
 
 interface SearchDoctor {
   id: string;
@@ -61,15 +64,14 @@ interface SearchDoctor {
     IonSelectOption,
     IonChip,
     IonBadge,
-    IonSegment,
-    IonSegmentButton
+    IonItemSliding,
+    IonItemOptions,
+    IonItemOption
   ]
 })
 export class ArztsuchePage implements AfterViewInit {
-  searchCity = signal('');
   searchQuery = signal('');
   selectedSpecialty = signal('');
-  searchMode = signal<'city' | 'text'>('city');
 
   searchResults = signal<SearchDoctor[]>([]);
   isLoading = signal(false);
@@ -82,10 +84,11 @@ export class ArztsuchePage implements AfterViewInit {
   constructor(
     doctorService: FirebaseDoctorService,
     private settingsService: UserSettingsService,
-    private googlePlacesService: GooglePlacesService
+    private googlePlacesService: GooglePlacesService,
+    private modalController: ModalController
   ) {
     this.doctorService = doctorService;
-    addIcons({ searchOutline, addCircleOutline, locationOutline, callOutline, globeOutline });
+    addIcons({ searchOutline, addCircleOutline, locationOutline, callOutline, globeOutline, createOutline });
   }
 
   ngAfterViewInit() {
@@ -96,17 +99,10 @@ export class ArztsuchePage implements AfterViewInit {
   }
 
   async onSearch() {
-    const mode = this.searchMode();
-    const city = this.searchCity().trim();
     const query = this.searchQuery().trim();
     const specialty = this.selectedSpecialty();
 
-    if (mode === 'city' && !city) {
-      alert('Bitte geben Sie eine Stadt ein.');
-      return;
-    }
-
-    if (mode === 'text' && !query) {
+    if (!query) {
       alert('Bitte geben Sie einen Suchbegriff ein.');
       return;
     }
@@ -117,13 +113,8 @@ export class ArztsuchePage implements AfterViewInit {
     try {
       let results: PlaceResult[] = [];
 
-      if (mode === 'city') {
-        // Search by city (nearby search)
-        results = await this.googlePlacesService.searchDoctorsNearby(city, 10000);
-      } else {
-        // Text search
-        results = await this.googlePlacesService.searchDoctorsByText(query);
-      }
+      // Text search
+      results = await this.googlePlacesService.searchDoctorsByText(query);
 
       // Filter by specialty if selected
       if (specialty) {
@@ -181,23 +172,12 @@ export class ArztsuchePage implements AfterViewInit {
     return undefined;
   }
 
-  onCityChange(event: any) {
-    this.searchCity.set(event.target.value || '');
-  }
-
   onQueryChange(event: any) {
     this.searchQuery.set(event.target.value || '');
   }
 
   onSpecialtyChange(event: any) {
     this.selectedSpecialty.set(event.detail.value);
-  }
-
-  onSearchModeChange(event: any) {
-    this.searchMode.set(event.detail.value);
-    // Clear search results when switching modes
-    this.searchResults.set([]);
-    this.hasSearched.set(false);
   }
 
   addDoctor(doctor: SearchDoctor) {
@@ -243,5 +223,35 @@ export class ArztsuchePage implements AfterViewInit {
       d.name === doctor.name &&
       d.city === doctor.city
     );
+  }
+
+  async editDoctor(doctor: SearchDoctor) {
+    // Find the actual doctor in the service
+    const existingDoctors = this.doctorService.allDoctors();
+    const existingDoctor = existingDoctors.find(d =>
+      d.name === doctor.name &&
+      d.city === doctor.city
+    );
+
+    if (!existingDoctor) {
+      alert('Arzt wurde nicht gefunden.');
+      return;
+    }
+
+    const modal = await this.modalController.create({
+      component: DoctorFormModal,
+      componentProps: {
+        doctor: existingDoctor,
+        mode: 'edit'
+      }
+    });
+
+    await modal.present();
+
+    const { data } = await modal.onWillDismiss();
+    if (data?.saved || data?.deleted) {
+      // Optionally refresh search results or show a message
+      console.log('Doctor updated or deleted');
+    }
   }
 }
